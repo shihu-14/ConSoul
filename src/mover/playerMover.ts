@@ -103,7 +103,11 @@ export const playerMover = (playerData: PlayerData, mapData: MapData, ghostDatas
     if (playerData.nouhin === mapData.items.length) {
       playerData.nouhin = 0;
       moveNextMap();
-      if (settings.mode === 'game') resetActorPositions(playerData, ghostDatas);
+      if (settings.mode === 'game') {
+        resetActorPositions(playerData, ghostDatas);
+      } else {
+        return;
+      }
     }
   }
 
