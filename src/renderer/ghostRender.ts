@@ -7,7 +7,7 @@ const GHOST_DIRECTION_SRC: Record<string, number[]> = {
   gDown: [128, 0, 64, 64],
   gLeft: [0, 0, 64, 64],
   gRight: [192, 0, 64, 64],
-  None: [0, 0, 0, 0],
+  gNone: [0, 0, 64, 64],
 };
 const GHOST_SHURUI_SRC: Record<string, number> = {
   random: 64,
