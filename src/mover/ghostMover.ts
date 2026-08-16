@@ -3,8 +3,9 @@ import { MapData } from '../data/mapData';
 import { PlayerData } from '../data/playerData';
 import { ghostType } from '../type/ghostType';
 
-export const checkCollisionWall = (gx:number, gy:number, mapData: MapData) => {
-  const { width } = mapData;
+export const checkCollisionWall = (gx: number, gy: number, mapData: MapData) => {
+  const { width, height } = mapData;
+  if (gx < 0 || gx >= width || gy < 0 || gy >= height) return false;
   return mapData.data[gy * width + gx] !== '#';
 };
 // ある方向に一マス移動する
@@ -15,22 +16,20 @@ export const ghostMover = (
 ) => {
   const gnow = Date.now() / 1000;
 
-  // 座標と動きもろもろ.ここはghostDataで123の区別はつかないのか.ghostDataにghostData1,2,3をいれたい
-
   if (gnow - tekito.gstart < tekito.ginterval) {
     tekito.gx = (tekito.gtargetX - tekito.gpreX)
-    * ((gnow - tekito.gstart) / tekito.ginterval) + tekito.gpreX; // なめらか移動
+    * ((gnow - tekito.gstart) / tekito.ginterval) + tekito.gpreX;
     tekito.gy = (tekito.gtargetY - tekito.gpreY)
     * ((gnow - tekito.gstart) / tekito.ginterval) + tekito.gpreY;
-  } else { // 到着したとき
-    ghostType(tekito, playerData, mapData); // typeから方向決定
+  } else {
+    ghostType(tekito, playerData, mapData);
     tekito.gstart = gnow;
     tekito.gpreX = tekito.gtargetX;
     tekito.gpreY = tekito.gtargetY;
     switch (tekito.gdirect) {
       case 'gUp':
         tekito.gtargetX = tekito.gpreX;
-        tekito.gtargetY = tekito.gpreY - 1; // →をx正,↓をy正として考えていることに注意
+        tekito.gtargetY = tekito.gpreY - 1;
         break;
       case 'gDown':
         tekito.gtargetX = tekito.gpreX;
