@@ -29,7 +29,12 @@ export const resultKeydownEvent = () => {
     if (settings.mode === 'result') {
       if (e.key === ' ') settings.mode = 'title';
       if (e.key === 'e') {
-        window.open(`https://twitter.com/intent/tweet?text=ConSoulを${3}分${3}秒でクリアしました！&hashtags=ConSoul`, '_blank');
+        const elapsedSeconds = Math.max(0, Math.round((settings.end - settings.start) / 1000));
+        const minutes = Math.floor(elapsedSeconds / 60);
+        const seconds = elapsedSeconds % 60;
+        const text = `ConSoulを${minutes}分${seconds}秒でクリアしました！`;
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=ConSoul`;
+        window.open(url, '_blank');
       }
     }
   });
