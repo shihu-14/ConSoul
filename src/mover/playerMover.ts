@@ -4,6 +4,7 @@ import { PlayerData } from '../data/playerData';
 import { GhostData } from '../data/ghostData';
 import { settings } from '../settings';
 import { moveNextMap } from '../controller/stageController';
+import { resetActorPositions } from '../initializer/gameInitializer';
 
 // プレイヤーがアイテムを所持していない状態でアイテムをゲットしたとき
 // プレイヤーの次の位置を取得する
@@ -26,9 +27,9 @@ const playerMeetsGhost = (player: PlayerData, ghost: GhostData) => (
 );
 
 export const playerMover = (playerData: PlayerData, mapData: MapData, ghostDatas: GhostData[]) => {
-  // noting to do
-  const checkCollisionWall = (x:number, y:number) => {
-    const { width } = mapData;
+  const checkCollisionWall = (x: number, y: number) => {
+    const { width, height } = mapData;
+    if (x < 0 || x >= width || y < 0 || y >= height) return false;
     return mapData.data[y * width + x] !== '#';
   };
 
@@ -102,6 +103,7 @@ export const playerMover = (playerData: PlayerData, mapData: MapData, ghostDatas
     if (playerData.nouhin === mapData.items.length) {
       playerData.nouhin = 0;
       moveNextMap();
+      if (settings.mode === 'game') resetActorPositions(playerData, ghostDatas);
     }
   }
 
