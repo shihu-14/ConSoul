@@ -29,6 +29,6 @@ export const getCurrentMap = () => stageData.maps[stageData.current];
 export const stageReset = () => {
   stageData.current = 0;
   for (let i = 0; i < stageData.maps.length; i += 1) {
-    stageData.maps[i].exist = [true, true, true, true];
+    stageData.maps[i].exist = stageData.maps[i].items.map(() => true);
   }
 };
