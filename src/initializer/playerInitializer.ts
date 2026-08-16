@@ -1,6 +1,10 @@
 import { PlayerData } from '../data/playerData';
 import { settings } from '../settings';
 
+const isArrowKey = (key: string) => (
+  key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight'
+);
+
 export const playerInitializer = (playerData: PlayerData) => {
   window.addEventListener('keydown', (e) => {
     if (settings.mode !== 'game') return;
@@ -22,7 +26,8 @@ export const playerInitializer = (playerData: PlayerData) => {
     }
   });
 
-  window.addEventListener('keyup', () => {
-    playerData.direction = 'None';
+  window.addEventListener('keyup', (e) => {
+    if (!isArrowKey(e.key)) return;
+    if (e.key === playerData.direction) playerData.direction = 'None';
   });
 };
