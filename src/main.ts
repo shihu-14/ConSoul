@@ -42,24 +42,24 @@ const Hackathon = () => {
     shurui: 'student',
   };
 
-  const ghostData1: GhostData = { // ランダム挙動
+  const ghostData1: GhostData = {
     gtype: 'random',
     gx: 5,
-    gy: 5, // ghostの初期位置
+    gy: 5,
     gdirect: 'gNone',
-    ginterval: 0.5, // ?秒で次のマスに移動するとする
+    ginterval: 0.5,
     gtargetX: 5,
     gtargetY: 5,
     gpreX: 5,
     gpreY: 5,
     gstart: Date.now() / 1000,
   };
-  const ghostData2: GhostData = { // Target挙動
+  const ghostData2: GhostData = {
     gtype: 'chase',
     gx: 5,
-    gy: 5, // ghostの初期位置
+    gy: 5,
     gdirect: 'gNone',
-    ginterval: 0.5, // ?秒で次のマスに移動するとする
+    ginterval: 0.5,
     gtargetX: 5,
     gtargetY: 5,
     gpreX: 5,
@@ -70,7 +70,6 @@ const Hackathon = () => {
 
   playerInitializer(playerData);
 
-  // keydownイベントが起こったときの画面遷移
   titleKeydownEvent(playerData);
   resultKeydownEvent();
   result2KeydownEvent();
@@ -80,33 +79,31 @@ const Hackathon = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const nowMap = getCurrentMap();
-
     switch (settings.mode) {
       case 'title': {
-        // title rendering
         titleRendering(ctx);
         break;
       }
-      case 'game':
+      case 'game': {
         if (preMode === 'title') gameInitializer(playerData, [ghostData1, ghostData2]);
+        const nowMap = getCurrentMap();
 
-        ghostMover(ghostData1, nowMap, playerData); // ghostData1とか分けたい
+        ghostMover(ghostData1, nowMap, playerData);
         ghostMover(ghostData2, nowMap, playerData);
         playerMover(playerData, nowMap, [ghostData1, ghostData2]);
+        const renderMap = getCurrentMap();
         resizeField(ctx, () => {
-          mapRender(nowMap, ctx);
-          playerRender(playerData, nowMap, ctx);
-          ghostRender(ghostData1, nowMap, ctx);
-          ghostRender(ghostData2, nowMap, ctx);
+          mapRender(renderMap, ctx);
+          playerRender(playerData, renderMap, ctx);
+          ghostRender(ghostData1, renderMap, ctx);
+          ghostRender(ghostData2, renderMap, ctx);
         });
         break;
+      }
       case 'result':
-        // result rendering
         resultRendering(ctx);
         break;
       case 'result2':
-        // 失敗時result rendering
         result2Rrendering(ctx);
         break;
       default:
