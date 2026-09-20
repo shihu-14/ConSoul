@@ -3,6 +3,7 @@ import { PlayerData } from "../data/playerData";
 import { settings } from "../settings";
 import { getPlayerMoveIntervalSeconds } from "../config/gameBalance";
 import { PlayerInputState } from "../data/playerInput";
+import { resetPlayerInputState } from "../game/playerAction";
 
 export const resetPlayerPosition = (
   playerData: PlayerData,
@@ -17,7 +18,6 @@ export const resetPlayerPosition = (
   playerData.preY = startY;
   playerData.start = nowSeconds;
   playerData.movementState = { kind: "normal" };
-  playerData.dashReadyAtSeconds = nowSeconds;
   playerData.heldItems = [];
   playerData.activeMoveIntervalSeconds = getPlayerMoveIntervalSeconds(
     playerData.shurui,
@@ -35,10 +35,7 @@ export const gameInitializer = (
   resetPlayerPosition(playerData, nowSeconds);
   playerData.forward = "ArrowRight";
   playerData.nouhin = 0;
-  if (input) {
-    input.direction = "None";
-    input.queuedForce = null;
-  }
+  if (input) resetPlayerInputState(input);
 
   settings.start = nowMilliseconds;
 };

@@ -6,6 +6,12 @@ import {
 } from "./controller/stageController";
 import { PlayerData } from "./data/playerData";
 import { createPlayerInputState } from "./game/playerAction";
+import {
+  createMovementEffectState,
+  emitMovementEffect,
+  getGhostMovementEffectKind,
+  pruneMovementEffects,
+} from "./game/movementEffect";
 import { gameInitializer } from "./initializer/gameInitializer";
 import { playerInitializer } from "./initializer/playerInitializer";
 import {
@@ -21,6 +27,8 @@ import { mapRender } from "./renderer/mapRender";
 import { playerRender } from "./renderer/playerRender";
 import { resizeField } from "./renderer/resizeField";
 import { blockRender } from "./renderer/blockRender";
+import { hudRailRender } from "./renderer/hudRailRender";
+import { movementEffectRender } from "./renderer/movementEffectRender";
 import {
   result2Rrendering,
   resultRendering,
@@ -46,12 +54,12 @@ const Hackathon = () => {
     start: 0,
     activeMoveIntervalSeconds: 0,
     movementState: { kind: "normal" },
-    dashReadyAtSeconds: 0,
     heldItems: [],
     nouhin: 0,
     shurui: "student",
   };
   const playerInput = createPlayerInputState();
+  const movementEffects = createMovementEffectState();
   let preMode = "title";
 
   playerInitializer(playerData, playerInput);
@@ -69,29 +77,77 @@ const Hackathon = () => {
         break;
       }
       case "game": {
-        if (preMode === "title") gameInitializer(playerData, playerInput);
+        const nowSeconds = performance.now() / 1000;
+        if (preMode === "title") {
+          gameInitializer(playerData, playerInput, nowSeconds * 1000);
+          movementEffects.particles = [];
+        }
+        pruneMovementEffects(movementEffects, nowSeconds);
 
         const currentMap = getCurrentMap();
         const currentGhosts = getCurrentGhosts();
         const currentBlocks = getCurrentBlocks();
         currentGhosts.forEach((ghost) => {
-          ghostMover(ghost, currentMap, playerData, undefined, currentBlocks);
+          const previousTargetX = ghost.gtargetX;
+          const previousTargetY = ghost.gtargetY;
+          ghostMover(ghost, currentMap, playerData, nowSeconds, currentBlocks);
+          const directionX = ghost.gtargetX - ghost.gpreX;
+          const directionY = ghost.gtargetY - ghost.gpreY;
+          const effectKind = getGhostMovementEffectKind(ghost.state);
+          if (
+            effectKind &&
+            (ghost.gtargetX !== previousTargetX ||
+              ghost.gtargetY !== previousTargetY)
+          ) {
+            emitMovementEffect(
+              movementEffects,
+              effectKind,
+              ghost.gpreX,
+              ghost.gpreY,
+              directionX,
+              directionY,
+              nowSeconds,
+            );
+          }
         });
+        const playerWasDashing = playerData.movementState.kind === "dashing";
+        const previousPlayerTargetX = playerData.targetX;
+        const previousPlayerTargetY = playerData.targetY;
         playerMover(
           playerData,
           currentMap,
           currentGhosts,
           playerInput,
-          undefined,
+          nowSeconds,
           currentBlocks,
         );
+
+        if (getCurrentMap() !== currentMap) {
+          movementEffects.particles = [];
+        } else if (
+          (playerWasDashing || playerData.movementState.kind === "dashing") &&
+          (playerData.targetX !== previousPlayerTargetX ||
+            playerData.targetY !== previousPlayerTargetY)
+        ) {
+          emitMovementEffect(
+            movementEffects,
+            "dash",
+            playerData.preX,
+            playerData.preY,
+            playerData.targetX - playerData.preX,
+            playerData.targetY - playerData.preY,
+            nowSeconds,
+          );
+        }
 
         const renderMap = getCurrentMap();
         const renderGhosts = getCurrentGhosts();
         const renderBlocks = getCurrentBlocks();
+        hudRailRender(ctx);
         resizeField(ctx, () => {
           mapRender(renderMap, ctx);
           blockRender(renderBlocks, renderMap, ctx);
+          movementEffectRender(movementEffects, renderMap, ctx, nowSeconds);
           playerRender(playerData, renderMap, ctx);
           renderGhosts.forEach((ghost) => {
             ghostRender(ghost, renderMap, ctx);

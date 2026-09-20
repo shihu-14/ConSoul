@@ -1,6 +1,10 @@
 import { PlayerInputState } from "../data/playerInput";
 import { PlayerData } from "../data/playerData";
-import { queueForceIntent } from "../game/playerAction";
+import {
+  queueForceIntent,
+  queuePullIntent,
+  releaseForce,
+} from "../game/playerAction";
 import { settings } from "../settings";
 
 const isArrowKey = (key: string) =>
@@ -18,15 +22,19 @@ export const playerInitializer = (
     switch (e.key) {
       case "ArrowUp":
         input.direction = "ArrowUp";
+        queuePullIntent(input, "ArrowUp");
         break;
       case "ArrowDown":
         input.direction = "ArrowDown";
+        queuePullIntent(input, "ArrowDown");
         break;
       case "ArrowLeft":
         input.direction = "ArrowLeft";
+        queuePullIntent(input, "ArrowLeft");
         break;
       case "ArrowRight":
         input.direction = "ArrowRight";
+        queuePullIntent(input, "ArrowRight");
         break;
       case " ":
         queueForceIntent(input, playerData.forward, e.repeat);
@@ -37,6 +45,10 @@ export const playerInitializer = (
   });
 
   window.addEventListener("keyup", (e) => {
+    if (e.key === " ") {
+      releaseForce(input);
+      return;
+    }
     if (!isArrowKey(e.key)) return;
     if (e.key === input.direction) input.direction = "None";
   });

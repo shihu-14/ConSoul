@@ -3,8 +3,12 @@ import { GhostData, GhostDirection } from "../data/ghostData";
 import { MapData } from "../data/mapData";
 import { PlayerData } from "../data/playerData";
 import { CardinalGhostDirection } from "../game/ghostState";
-import { BlockData } from "../data/blockData";
-import { hasBlockAt, isOpenCell } from "../game/occupancy";
+import {
+  BlockOccupancy,
+  createBlockPositionSet,
+  hasBlockAt,
+  isOpenCell,
+} from "../game/occupancy";
 
 interface DirectionStep {
   readonly direction: Exclude<GhostDirection, "gNone">;
@@ -37,7 +41,7 @@ const chooseRandom = <T>(values: readonly T[], random: () => number): T => {
 const legalDirections = (
   ghost: GhostData,
   map: MapData,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ) =>
   directionSteps.filter(({ dx, dy }) =>
     isOpenCell(map, blocks, ghost.gtargetX + dx, ghost.gtargetY + dy),
@@ -47,7 +51,7 @@ const chooseRandomDirection = (
   ghost: GhostData,
   map: MapData,
   random: () => number,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ) => {
   const legal = legalDirections(ghost, map, blocks);
   if (legal.length === 0) return "gNone";
@@ -66,7 +70,7 @@ const shortestDistance = (
   startY: number,
   targetX: number,
   targetY: number,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ) => {
   if (startX === targetX && startY === targetY) return 0;
 
@@ -104,7 +108,7 @@ const chooseChaseDirection = (
   player: PlayerData,
   map: MapData,
   random: () => number,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ) => {
   const legal = legalDirections(ghost, map, blocks);
   const scored = legal.map((step) => ({
@@ -145,7 +149,7 @@ const chooseChaseDirection = (
 const choosePatrolDirection = (
   ghost: GhostData,
   map: MapData,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ): GhostDirection => {
   if (ghost.balance.type !== "patrol") return "gNone";
 
@@ -167,7 +171,7 @@ const getLineOfSightDirection = (
   ghost: GhostData,
   player: PlayerData,
   map: MapData,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ): CardinalGhostDirection | undefined => {
   const dx = player.preX - ghost.gtargetX;
   const dy = player.preY - ghost.gtargetY;
@@ -194,7 +198,7 @@ const chooseChargeBehavior = (
   player: PlayerData,
   map: MapData,
   random: () => number,
-  blocks: readonly BlockData[],
+  blocks: BlockOccupancy,
 ) => {
   if (ghost.state.kind === "charging") {
     const chargeDirection = ghost.state.direction;
@@ -270,16 +274,17 @@ export const ghostType = (
   player: PlayerData,
   map: MapData,
   random = Math.random,
-  blocks: readonly BlockData[] = [],
+  blocks: BlockOccupancy = [],
 ) => {
+  const occupiedBlocks = createBlockPositionSet(blocks);
   if (ghost.balance.type === "patrol") {
     ghost.state = { kind: "normal" };
-    ghost.gdirect = choosePatrolDirection(ghost, map, blocks);
+    ghost.gdirect = choosePatrolDirection(ghost, map, occupiedBlocks);
     return;
   }
 
   if (ghost.balance.type === "charge") {
-    chooseChargeBehavior(ghost, player, map, random, blocks);
+    chooseChargeBehavior(ghost, player, map, random, occupiedBlocks);
     return;
   }
 
@@ -294,10 +299,16 @@ export const ghostType = (
       ghost.gdirect = "gNone";
     } else {
       ghost.state = { kind: "chasing" };
-      ghost.gdirect = chooseChaseDirection(ghost, player, map, random, blocks);
+      ghost.gdirect = chooseChaseDirection(
+        ghost,
+        player,
+        map,
+        random,
+        occupiedBlocks,
+      );
     }
   } else {
     ghost.state = { kind: "normal" };
-    ghost.gdirect = chooseRandomDirection(ghost, map, random, blocks);
+    ghost.gdirect = chooseRandomDirection(ghost, map, random, occupiedBlocks);
   }
 };

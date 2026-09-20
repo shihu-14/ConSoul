@@ -5,82 +5,114 @@ import { CardinalPlayerDirection, PlayerData } from "../data/playerData";
 import { getPlayerDirectionDelta } from "./playerAction";
 import { hasBlockAt, isTerrainWalkable } from "./occupancy";
 
-export interface BlockPushContext {
+export interface BlockMoveContext {
   readonly map: MapData;
   readonly blocks: BlockData[];
   readonly player: PlayerData;
   readonly ghosts: readonly GhostData[];
 }
 
-const getPushCells = (
-  context: BlockPushContext,
-  direction: CardinalPlayerDirection,
+export const canBlockOccupyCell = (
+  context: BlockMoveContext,
+  x: number,
+  y: number,
 ) => {
-  const [dx, dy] = getPlayerDirectionDelta(direction);
-  const blockX = context.player.preX + dx;
-  const blockY = context.player.preY + dy;
-  return {
-    blockX,
-    blockY,
-    destinationX: blockX + dx,
-    destinationY: blockY + dy,
-  };
-};
-
-export const hasPushableBlock = (
-  context: BlockPushContext,
-  direction: CardinalPlayerDirection,
-) => {
-  const { blockX, blockY } = getPushCells(context, direction);
-  return hasBlockAt(context.blocks, blockX, blockY);
-};
-
-export const canPushBlock = (
-  context: BlockPushContext,
-  direction: CardinalPlayerDirection,
-) => {
-  const { blockX, blockY, destinationX, destinationY } = getPushCells(
-    context,
-    direction,
-  );
-  if (!hasBlockAt(context.blocks, blockX, blockY)) return false;
-  if (!isTerrainWalkable(context.map, destinationX, destinationY)) return false;
-  if (hasBlockAt(context.blocks, destinationX, destinationY)) return false;
-  if (
-    context.map.post[0] === destinationX &&
-    context.map.post[1] === destinationY
-  ) {
-    return false;
-  }
+  if (!isTerrainWalkable(context.map, x, y)) return false;
+  if (hasBlockAt(context.blocks, x, y)) return false;
+  if (context.map.post[0] === x && context.map.post[1] === y) return false;
   if (
     context.map.items.some(
-      ([x, y], index) =>
-        context.map.exist[index] && x === destinationX && y === destinationY,
+      ([itemX, itemY], index) =>
+        context.map.exist[index] && itemX === x && itemY === y,
     )
   ) {
     return false;
   }
   return !context.ghosts.some(
     (ghost) =>
-      (ghost.gpreX === destinationX && ghost.gpreY === destinationY) ||
-      (ghost.gtargetX === destinationX && ghost.gtargetY === destinationY),
+      (ghost.gpreX === x && ghost.gpreY === y) ||
+      (ghost.gtargetX === x && ghost.gtargetY === y),
   );
 };
 
-export type PushResult = "noBlock" | "blocked" | "pushed";
+export type PushResult =
+  | { readonly kind: "noBlock" }
+  | { readonly kind: "blocked" }
+  | { readonly kind: "pushed"; readonly movedBlockCount: number };
 
-export const tryPushBlock = (
-  context: BlockPushContext,
+export const tryPushBlockChain = (
+  context: BlockMoveContext,
   direction: CardinalPlayerDirection,
 ): PushResult => {
-  const { blockX, blockY, destinationX, destinationY } = getPushCells(
-    context,
-    direction,
+  const [dx, dy] = getPlayerDirectionDelta(direction);
+  let x = context.player.preX + dx;
+  let y = context.player.preY + dy;
+  const chain: BlockData[] = [];
+  const blocksByPosition = new Map(
+    context.blocks.map((block) => [`${block.x},${block.y}`, block]),
   );
-  const block = context.blocks.find(({ x, y }) => x === blockX && y === blockY);
-  if (!block) return "noBlock";
-  if (!canPushBlock(context, direction)) return "blocked";
-  block.x = destinationX;
-  block.y = destinationY;
-  return "pushed";
+
+  let block = blocksByPosition.get(`${x},${y}`);
+  while (block) {
+    chain.push(block);
+    x += dx;
+    y += dy;
+    block = blocksByPosition.get(`${x},${y}`);
+  }
+
+  if (chain.length === 0) return { kind: "noBlock" };
+  if (!canBlockOccupyCell(context, x, y)) return { kind: "blocked" };
+
+  for (let index = chain.length - 1; index >= 0; index -= 1) {
+    chain[index].x += dx;
+    chain[index].y += dy;
+  }
+  return { kind: "pushed", movedBlockCount: chain.length };
+};
+
+export type PullResult =
+  | { readonly kind: "noBlock" }
+  | { readonly kind: "blocked" }
+  | { readonly kind: "pulled" };
+
+export const tryPullBlock = (
+  context: BlockMoveContext,
+  blockDirection: CardinalPlayerDirection,
+  retreatDirection: CardinalPlayerDirection,
+): PullResult => {
+  const [blockDx, blockDy] = getPlayerDirectionDelta(blockDirection);
+  const [retreatDx, retreatDy] = getPlayerDirectionDelta(retreatDirection);
+  if (blockDx + retreatDx !== 0 || blockDy + retreatDy !== 0) {
+    return { kind: "blocked" };
+  }
+
+  const block = context.blocks.find(
+    ({ x, y }) =>
+      x === context.player.preX + blockDx &&
+      y === context.player.preY + blockDy,
+  );
+  if (!block) return { kind: "noBlock" };
+
+  const retreatX = context.player.preX + retreatDx;
+  const retreatY = context.player.preY + retreatDy;
+  const retreatIsBlocked =
+    !isTerrainWalkable(context.map, retreatX, retreatY) ||
+    hasBlockAt(context.blocks, retreatX, retreatY) ||
+    context.ghosts.some(
+      (ghost) =>
+        (ghost.gpreX === retreatX && ghost.gpreY === retreatY) ||
+        (ghost.gtargetX === retreatX && ghost.gtargetY === retreatY),
+    );
+  if (
+    retreatIsBlocked ||
+    !canBlockOccupyCell(context, context.player.preX, context.player.preY)
+  ) {
+    return { kind: "blocked" };
+  }
+
+  block.x = context.player.preX;
+  block.y = context.player.preY;
+  context.player.targetX = retreatX;
+  context.player.targetY = retreatY;
+  return { kind: "pulled" };
 };

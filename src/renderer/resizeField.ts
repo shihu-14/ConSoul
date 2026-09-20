@@ -1,7 +1,6 @@
 const saveField = (ctx: CanvasRenderingContext2D) => {
   ctx.save();
   const { width, height } = ctx.canvas;
-  ctx.translate((width - height) / 2, 0);
   ctx.scale(height / width, 1);
 };
 

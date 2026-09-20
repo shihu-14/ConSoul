@@ -5,7 +5,7 @@ import { ghostType } from "../type/ghostType";
 import { isWalkable } from "../game/map";
 import { enemyBehaviorBalance } from "../config/gameBalance";
 import { BlockData } from "../data/blockData";
-import { isOpenCell } from "../game/occupancy";
+import { createBlockPositionSet, isOpenCell } from "../game/occupancy";
 
 export const checkCollisionWall = (gx: number, gy: number, mapData: MapData) =>
   isWalkable(mapData, gx, gy);
@@ -17,6 +17,7 @@ export const ghostMover = (
   nowSeconds = performance.now() / 1000,
   blocks: readonly BlockData[] = [],
 ) => {
+  const occupiedBlocks = createBlockPositionSet(blocks);
   const { activeMoveIntervalSeconds } = ghostData;
   if (nowSeconds - ghostData.gstart < activeMoveIntervalSeconds) {
     ghostData.gx =
@@ -30,7 +31,7 @@ export const ghostMover = (
   } else {
     ghostData.gx = ghostData.gtargetX;
     ghostData.gy = ghostData.gtargetY;
-    ghostType(ghostData, playerData, mapData, Math.random, blocks);
+    ghostType(ghostData, playerData, mapData, Math.random, occupiedBlocks);
     let speedMultiplier = 1;
     if (ghostData.state.kind === "alertingChase") {
       ghostData.activeMoveIntervalSeconds =
@@ -75,7 +76,14 @@ export const ghostMover = (
       default:
         throw new Error("ghostDirectionErrorです");
     }
-    if (!isOpenCell(mapData, blocks, ghostData.gtargetX, ghostData.gtargetY)) {
+    if (
+      !isOpenCell(
+        mapData,
+        occupiedBlocks,
+        ghostData.gtargetX,
+        ghostData.gtargetY,
+      )
+    ) {
       ghostData.gtargetX = ghostData.gpreX;
       ghostData.gtargetY = ghostData.gpreY;
     }
