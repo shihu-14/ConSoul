@@ -6,26 +6,28 @@ interface PlayerBalanceConfig {
   readonly detectionRangeTiles: number;
 }
 
+export const globalMovementSpeedMultiplier = 1.2;
+
 export const playerBalance = {
   student: {
-    moveIntervalSeconds: 0.35 / 1.75,
+    moveIntervalSeconds: 0.35 / 1.75 / globalMovementSpeedMultiplier,
     carrySlowdownPerItem: 0.18,
     detectionRangeTiles: 15,
   },
   exorcist: {
-    moveIntervalSeconds: 0.4 / 1.75,
+    moveIntervalSeconds: 0.4 / 1.75 / globalMovementSpeedMultiplier,
     carrySlowdownPerItem: 0.12,
     detectionRangeTiles: 10,
   },
   monk: {
-    moveIntervalSeconds: 0.45 / 1.75,
+    moveIntervalSeconds: 0.45 / 1.75 / globalMovementSpeedMultiplier,
     carrySlowdownPerItem: 0.06,
     detectionRangeTiles: 7,
   },
 } as const satisfies Record<PlayerType, PlayerBalanceConfig>;
 
 export const playerActionBalance = {
-  dashDistanceTiles: 2,
+  dashDistanceTiles: 3,
   dashSpeedMultiplier: 2,
   blockPushMoveIntervalSeconds: 0.12,
   stageTransitionDurationSeconds: 1,
@@ -35,7 +37,7 @@ export const playerEnergyBalance = {
   maximumEnergy: 100,
   dashEnergyCost: 25,
   pushEnergyCost: 20,
-  energyRecoveryPerSecond: 20,
+  energyRecoveryPerSecond: 26,
 } as const;
 
 export const getPlayerMoveIntervalSeconds = (
@@ -53,7 +55,7 @@ export const getPlayerDashMoveIntervalSeconds = (
   playerActionBalance.dashSpeedMultiplier;
 
 export const getChaseMoveIntervalSeconds = () =>
-  getPlayerDashMoveIntervalSeconds("exorcist", 0);
+  getPlayerMoveIntervalSeconds("exorcist", 0);
 
 export type GridPosition = readonly [number, number];
 export type EnemyType = "patrol" | "random" | "chase" | "charge";
@@ -64,6 +66,9 @@ export const enemyBehaviorBalance = {
   chargeBlockStunDurationSeconds: 0.6,
   chargeSpeedMultiplier: 0.4,
 } as const;
+
+export const enemyBaseMoveIntervalSeconds =
+  0.45 / 1.75 / globalMovementSpeedMultiplier;
 
 interface BaseEnemyBalanceConfig {
   readonly type: EnemyType;
@@ -105,7 +110,7 @@ export interface StageBalanceConfig {
 
 export const stageBalance = [
   {
-    enemyMoveIntervalSeconds: 0.4 / 1.75,
+    enemyMoveIntervalSeconds: enemyBaseMoveIntervalSeconds,
     enemies: [
       {
         type: "patrol",
@@ -140,7 +145,7 @@ export const stageBalance = [
     ],
   },
   {
-    enemyMoveIntervalSeconds: 0.36 / 1.75,
+    enemyMoveIntervalSeconds: enemyBaseMoveIntervalSeconds,
     enemies: [
       {
         type: "patrol",
@@ -174,7 +179,7 @@ export const stageBalance = [
     ],
   },
   {
-    enemyMoveIntervalSeconds: 0.32 / 1.75,
+    enemyMoveIntervalSeconds: enemyBaseMoveIntervalSeconds,
     enemies: [
       {
         type: "patrol",

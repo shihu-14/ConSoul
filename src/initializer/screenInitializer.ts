@@ -6,7 +6,7 @@ export const titleKeydownEvent = (player: PlayerData) => {
     if (settings.mode === "title") {
       switch (e.key) {
         case "1":
-          player.shurui = "monk";
+          player.shurui = "student";
           settings.mode = "game";
           break;
         case "2":
@@ -14,7 +14,7 @@ export const titleKeydownEvent = (player: PlayerData) => {
           settings.mode = "game";
           break;
         case "3":
-          player.shurui = "student";
+          player.shurui = "monk";
           settings.mode = "game";
           break;
         default:
