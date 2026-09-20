@@ -8,12 +8,15 @@ import { Mode } from "../game/types";
 import { audioAssets, SfxId } from "./audioAssets";
 
 const BGM_VOLUME = 0.35;
+const MAX_SFX_VOICES = 4;
 
 const bgm = new Audio(audioAssets.gameBgm);
 bgm.loop = true;
 bgm.preload = "auto";
 bgm.volume = BGM_VOLUME;
 const activeSfx = new Set<HTMLAudioElement>();
+const sfxVoices = new Map<SfxId, HTMLAudioElement[]>();
+const sfxPlaybackIds = new Map<HTMLAudioElement, number>();
 const sfxStopTimers = new Map<
   HTMLAudioElement,
   ReturnType<typeof setTimeout>
@@ -121,10 +124,7 @@ const startAudio = (
  */
 const releaseSfx = (audio: HTMLAudioElement) => {
   activeSfx.delete(audio);
-  const amplifiedNodes = amplifiedSfxNodes.get(audio);
-  amplifiedNodes?.source.disconnect();
-  amplifiedNodes?.gain.disconnect();
-  amplifiedSfxNodes.delete(audio);
+  sfxPlaybackIds.set(audio, (sfxPlaybackIds.get(audio) ?? 0) + 1);
   const timer = sfxStopTimers.get(audio);
   if (timer === undefined) return;
   clearTimeout(timer);
@@ -172,26 +172,50 @@ export const stopAllAudio = () => {
   stopAllSfx();
 };
 
+const getSfxVoice = (id: SfxId) => {
+  const voices = sfxVoices.get(id) ?? [];
+  const available = voices.find((audio) => !activeSfx.has(audio));
+  if (available) return available;
+
+  if (voices.length < MAX_SFX_VOICES) {
+    const audio = new Audio(audioAssets.sfx[id]);
+    audio.addEventListener("ended", () => releaseSfx(audio));
+    if (sfxMetadata[id].gain !== undefined) connectWalkingGain(audio);
+    voices.push(audio);
+    sfxVoices.set(id, voices);
+    return audio;
+  }
+
+  const oldest = Array.from(activeSfx).find((audio) => voices.includes(audio));
+  const audio = oldest ?? voices[0];
+  stopSfx(audio);
+  return audio;
+};
+
 /**
  * 指定した効果音を一回再生する．durationSecondsを指定した場合は，その時間で動的に停止する．
- * 再生ごとにAudio要素を作成し，同じ効果音の重なりを許可する．
+ * 同じ効果音の重なりを許可しつつ，音声要素を再利用する．
  */
 export const playSfx = (id: SfxId, durationSeconds?: number) => {
-  const audio = new Audio(audioAssets.sfx[id]);
+  const audio = getSfxVoice(id);
   const metadata = sfxMetadata[id];
   audio.volume = metadata.volume;
   audio.playbackRate = metadata.playbackRate;
   audio.currentTime = metadata.startOffsetSeconds;
-  if (metadata.gain !== undefined) connectWalkingGain(audio);
   activeSfx.add(audio);
-  audio.addEventListener("ended", () => releaseSfx(audio), {
-    once: true,
-  });
+  const playbackId = (sfxPlaybackIds.get(audio) ?? 0) + 1;
+  sfxPlaybackIds.set(audio, playbackId);
   startAudio(
     audio,
-    () => releaseSfx(audio),
     () => {
-      if (durationSeconds === undefined) return;
+      if (sfxPlaybackIds.get(audio) === playbackId) stopSfx(audio);
+    },
+    () => {
+      if (
+        durationSeconds === undefined ||
+        sfxPlaybackIds.get(audio) !== playbackId
+      )
+        return;
       const timer = setTimeout(
         () => stopSfx(audio),
         Math.max(0, durationSeconds) * 1000,
