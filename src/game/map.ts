@@ -1,4 +1,5 @@
 import { MapData } from "../data/mapData";
+import { createInitialBlocks } from "./mapTemplate";
 
 export const isInBounds = (map: MapData, x: number, y: number) =>
   Number.isInteger(x) &&
@@ -13,6 +14,10 @@ export const isWalkable = (map: MapData, x: number, y: number) =>
 
 export const getMapValidationErrors = (map: MapData) => {
   const errors: string[] = [];
+  const initialBlocks = createInitialBlocks(map);
+  const initialBlockKeys = new Set(
+    initialBlocks.map(({ x, y }) => `${x},${y}`),
+  );
 
   if (map.data.length !== map.width * map.height) {
     errors.push(
@@ -26,6 +31,24 @@ export const getMapValidationErrors = (map: MapData) => {
   }
   if (map.items.length > 4) {
     errors.push("map has more than the four-item HUD capacity");
+  }
+
+  for (let y = 0; y < map.height; y += 1) {
+    for (let x = 0; x < map.width; x += 1) {
+      const cell = map.data[y * map.width + x];
+      if (cell !== "#" && cell !== "B" && cell !== ".") {
+        errors.push(`map has unknown cell '${cell}' at ${x},${y}`);
+      }
+      if (
+        cell === "#" &&
+        x > 0 &&
+        y > 0 &&
+        x < map.width - 1 &&
+        y < map.height - 1
+      ) {
+        errors.push(`fixed wall is inside the boundary at ${x},${y}`);
+      }
+    }
   }
 
   for (let x = 0; x < map.width; x += 1) {
@@ -48,35 +71,22 @@ export const getMapValidationErrors = (map: MapData) => {
   map.items.forEach(([x, y], index) => {
     if (!isWalkable(map, x, y))
       errors.push(`item ${index} is not on a walkable cell`);
+    if (initialBlockKeys.has(`${x},${y}`)) {
+      errors.push(`item ${index} overlaps a block`);
+    }
   });
   if (!isWalkable(map, map.post[0], map.post[1])) {
     errors.push("post is not on a walkable cell");
   }
+  if (initialBlockKeys.has(`${map.post[0]},${map.post[1]}`)) {
+    errors.push("post overlaps a block");
+  }
   if (!isWalkable(map, map.playerStart[0], map.playerStart[1])) {
     errors.push("player start is not on a walkable cell");
   }
-  map.initialBlockPositions.forEach(([x, y], index) => {
-    if (!isWalkable(map, x, y)) {
-      errors.push(`block ${index} is not on a walkable cell`);
-    }
-    if (map.post[0] === x && map.post[1] === y) {
-      errors.push(`block ${index} overlaps the post`);
-    }
-    if (map.playerStart[0] === x && map.playerStart[1] === y) {
-      errors.push(`block ${index} overlaps the player start`);
-    }
-    if (map.items.some(([itemX, itemY]) => itemX === x && itemY === y)) {
-      errors.push(`block ${index} overlaps an item`);
-    }
-    if (
-      map.initialBlockPositions.some(
-        ([otherX, otherY], otherIndex) =>
-          otherIndex < index && otherX === x && otherY === y,
-      )
-    ) {
-      errors.push(`block ${index} overlaps another block`);
-    }
-  });
+  if (initialBlockKeys.has(`${map.playerStart[0]},${map.playerStart[1]}`)) {
+    errors.push("player start overlaps a block");
+  }
 
   return errors;
 };

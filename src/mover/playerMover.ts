@@ -18,10 +18,11 @@ import { PlayerInputState } from "../data/playerInput";
 import {
   getPlayerDirectionDelta,
   isCardinalPlayerDirection,
+  resetPlayerInputState,
 } from "../game/playerAction";
 import { BlockData } from "../data/blockData";
-import { isOpenCell } from "../game/occupancy";
-import { hasPushableBlock, tryPushBlock } from "../game/blockLogic";
+import { hasBlockAt, isOpenCell } from "../game/occupancy";
+import { tryPullBlock, tryPushBlockChain } from "../game/blockLogic";
 
 export const playerMover = (
   playerData: PlayerData,
@@ -50,11 +51,12 @@ export const playerMover = (
     playerData.x = playerData.preX;
     playerData.preY = playerData.targetY;
     playerData.y = playerData.preY;
-    if (isCardinalPlayerDirection(input.direction)) {
+    if (!input.queuedForce && isCardinalPlayerDirection(input.direction)) {
       playerData.forward = input.direction;
     }
 
-    let forceWasPush = false;
+    let suppressNormalMovement = false;
+    let consumeForce = false;
     if (input.queuedForce && playerData.movementState.kind === "normal") {
       const context = {
         map: mapData,
@@ -62,38 +64,68 @@ export const playerMover = (
         player: playerData,
         ghosts: ghostDatas,
       };
-      if (hasPushableBlock(context, input.queuedForce.direction)) {
-        tryPushBlock(context, input.queuedForce.direction);
-        forceWasPush = true;
+      if (input.queuedForce.kind === "pull") {
+        playerData.forward = input.queuedForce.blockDirection;
+        tryPullBlock(
+          context,
+          input.queuedForce.blockDirection,
+          input.queuedForce.retreatDirection,
+        );
+        suppressNormalMovement = true;
+        consumeForce = true;
+      } else {
+        const direction =
+          input.queuedForce.kind === "dash"
+            ? input.queuedForce.direction
+            : input.queuedForce.blockDirection;
+        playerData.forward = direction;
+        const [dx, dy] = getPlayerDirectionDelta(direction);
+        const hasFrontBlock = hasBlockAt(
+          blocks,
+          playerData.preX + dx,
+          playerData.preY + dy,
+        );
+        if (
+          input.queuedForce.kind === "grip" &&
+          hasFrontBlock &&
+          input.spaceHeld
+        ) {
+          suppressNormalMovement = true;
+        } else if (hasFrontBlock) {
+          tryPushBlockChain(context, direction);
+          suppressNormalMovement = true;
+          consumeForce = true;
+        } else {
+          consumeForce = true;
+          if (
+            isOpenCell(
+              mapData,
+              blocks,
+              playerData.preX + dx,
+              playerData.preY + dy,
+            )
+          ) {
+            playerData.movementState = {
+              kind: "dashing",
+              direction,
+              remainingTiles: playerActionBalance.dashDistanceTiles,
+            };
+          } else {
+            suppressNormalMovement = true;
+          }
+        }
       }
     }
-    if (
-      input.queuedForce &&
-      !forceWasPush &&
-      playerData.movementState.kind === "normal" &&
-      now >= playerData.dashReadyAtSeconds
-    ) {
-      const { direction } = input.queuedForce;
-      const [dx, dy] = getPlayerDirectionDelta(direction);
-      if (
-        isOpenCell(mapData, blocks, playerData.preX + dx, playerData.preY + dy)
-      ) {
-        playerData.movementState = {
-          kind: "dashing",
-          direction,
-          remainingTiles: playerActionBalance.dashDistanceTiles,
-        };
-        playerData.dashReadyAtSeconds =
-          now + playerActionBalance.dashCooldownSeconds;
-      }
-    }
-    input.queuedForce = null;
+    if (consumeForce) input.queuedForce = null;
 
     const { movementState } = playerData;
     const wasDashing = movementState.kind === "dashing";
-    const movementDirection = wasDashing
-      ? movementState.direction
-      : input.direction;
+    let movementDirection = input.direction;
+    if (wasDashing) {
+      movementDirection = movementState.direction;
+    } else if (suppressNormalMovement) {
+      movementDirection = "None";
+    }
     if (isCardinalPlayerDirection(movementDirection)) {
       const [dx, dy] = getPlayerDirectionDelta(movementDirection);
       playerData.targetX = playerData.preX + dx;
@@ -121,6 +153,7 @@ export const playerMover = (
     if (playerData.nouhin === mapData.items.length) {
       playerData.nouhin = 0;
       moveNextMap(now);
+      resetPlayerInputState(input);
       if (settings.mode === "game") {
         resetPlayerPosition(playerData, now);
       }

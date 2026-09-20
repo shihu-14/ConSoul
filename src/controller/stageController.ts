@@ -3,10 +3,11 @@ import { MapData, mapData1, mapData2, mapData3 } from "../data/mapData";
 import { createGhostsForStage } from "../initializer/ghostInitializer";
 import { settings } from "../settings";
 import { BlockData } from "../data/blockData";
+import { createInitialBlocks } from "../game/mapTemplate";
 
 const maps = [mapData1, mapData2, mapData3] as MapData[];
 const createBlocksForStage = (stageIndex: number): BlockData[] =>
-  maps[stageIndex].initialBlockPositions.map(([x, y]) => ({ x, y }));
+  createInitialBlocks(maps[stageIndex]);
 const stageData = {
   current: 0,
   maps,

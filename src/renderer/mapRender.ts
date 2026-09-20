@@ -19,7 +19,7 @@ export const mapRender = (mapData: MapData, ctx: CanvasRenderingContext2D) => {
       const char = data[y * width + x];
       const downChar = y === height - 1 ? "." : data[(y + 1) * width + x];
       const floornum = Math.floor(getRandom(x, y) * 4);
-      if (char === ".") {
+      if (char !== "#") {
         ctx.drawImage(
           getImage("floor"),
           (floornum % 2) * 64,
