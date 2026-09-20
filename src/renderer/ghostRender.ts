@@ -1,4 +1,4 @@
-import { EnemyType } from "../config/gameBalance";
+import { EnemyType, enemyBehaviorBalance } from "../config/gameBalance";
 import { MapData } from "../data/mapData";
 import { GhostData } from "../data/ghostData";
 import { getImage } from "../imageloader/imageStore";
@@ -22,13 +22,14 @@ const renderStateOverlay = (
   ctx: CanvasRenderingContext2D,
   cellWidth: number,
   cellHeight: number,
+  nowSeconds: number,
 ) => {
   const { gx, gy, state } = ghostData;
   let label: string | undefined;
   let color: string | undefined;
   if (state.kind === "alertingChase") {
     label = "!";
-    color = "#ffd400";
+    color = "#ff3b30";
   } else if (state.kind === "alertingCharge") {
     label = "!!";
     color = "#ff3b30";
@@ -38,17 +39,39 @@ const renderStateOverlay = (
   }
   if (!label || !color) return;
   const labelX = (gx + 0.5) * cellWidth;
-  const labelY = (gy + 0.12) * cellHeight;
+  let labelY = (gy + 0.12) * cellHeight;
 
   ctx.save();
   ctx.fillStyle = color;
   ctx.strokeStyle = "#1b1b1b";
   ctx.lineWidth = Math.max(2, Math.min(cellWidth, cellHeight) * 0.1);
-  ctx.font = `bold ${Math.max(14, cellHeight * 0.8)}px sans-serif`;
+  ctx.font = `bold ${Math.max(14, cellHeight * 0.8)}px monospace`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.strokeText(label, labelX, labelY);
-  ctx.fillText(label, labelX, labelY);
+  let scale = 1;
+  if (state.kind === "alertingChase" || state.kind === "alertingCharge") {
+    const alertDurationSeconds =
+      state.kind === "alertingChase"
+        ? enemyBehaviorBalance.chaseAlertDurationSeconds
+        : enemyBehaviorBalance.chargeAlertDurationSeconds;
+    const popProgress = Math.max(
+      0,
+      Math.min(1, (nowSeconds - ghostData.gstart) / alertDurationSeconds),
+    );
+    if (popProgress < 0.45) {
+      const riseProgress = popProgress / 0.45;
+      scale = 0.75 + riseProgress * 0.4;
+      labelY -= cellHeight * 0.18 * riseProgress;
+    } else {
+      const settleProgress = (popProgress - 0.45) / 0.55;
+      scale = 1.15 - settleProgress * 0.15;
+      labelY -= cellHeight * (0.18 - settleProgress * 0.08);
+    }
+  }
+  ctx.translate(labelX, labelY);
+  ctx.scale(scale, scale);
+  ctx.strokeText(label, 0, 0);
+  ctx.fillText(label, 0, 0);
   ctx.restore();
 };
 
@@ -89,5 +112,5 @@ export const ghostRender = (
     dx,
     dy,
   );
-  renderStateOverlay(ghostData, ctx, dx, dy);
+  renderStateOverlay(ghostData, ctx, dx, dy, nowSeconds);
 };

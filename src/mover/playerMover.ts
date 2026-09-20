@@ -3,16 +3,17 @@ import { MapData } from "../data/mapData";
 import { PlayerData } from "../data/playerData";
 import { GhostData } from "../data/ghostData";
 import { settings } from "../settings";
-import { moveNextMap } from "../controller/stageController";
-import { resetPlayerPosition } from "../initializer/gameInitializer";
+import { beginStageTransition } from "../controller/stageController";
 import {
   collectItemAtPlayerPosition,
   deliverItemAtPost,
   playerMeetsGhost,
 } from "../game/playerLogic";
 import {
+  getPlayerDashMoveIntervalSeconds,
   getPlayerMoveIntervalSeconds,
   playerActionBalance,
+  playerEnergyBalance,
 } from "../config/gameBalance";
 import { PlayerInputState } from "../data/playerInput";
 import {
@@ -22,7 +23,8 @@ import {
 } from "../game/playerAction";
 import { BlockData } from "../data/blockData";
 import { hasBlockAt, isOpenCell } from "../game/occupancy";
-import { tryPullBlock, tryPushBlockChain } from "../game/blockLogic";
+import { tryPushBlockChain } from "../game/blockLogic";
+import { recoverPlayerEnergy, spendPlayerEnergy } from "../game/playerEnergy";
 
 export const playerMover = (
   playerData: PlayerData,
@@ -32,6 +34,11 @@ export const playerMover = (
   now = performance.now() / 1000,
   blocks: BlockData[] = [],
 ) => {
+  if (settings.mode === "stageTransition") return;
+  recoverPlayerEnergy(playerData, now);
+  if (playerData.movementState.kind === "dashing") {
+    input.queuedForce = null;
+  }
   const isStationary =
     playerData.targetX === playerData.preX &&
     playerData.targetY === playerData.preY;
@@ -57,6 +64,12 @@ export const playerMover = (
 
     let suppressNormalMovement = false;
     let consumeForce = false;
+    if (
+      playerData.movementState.kind === "dashing" &&
+      playerData.movementState.remainingTiles === 0
+    ) {
+      playerData.movementState = { kind: "normal" };
+    }
     if (input.queuedForce && playerData.movementState.kind === "normal") {
       const context = {
         map: mapData,
@@ -64,56 +77,35 @@ export const playerMover = (
         player: playerData,
         ghosts: ghostDatas,
       };
-      if (input.queuedForce.kind === "pull") {
-        playerData.forward = input.queuedForce.blockDirection;
-        tryPullBlock(
-          context,
-          input.queuedForce.blockDirection,
-          input.queuedForce.retreatDirection,
-        );
-        suppressNormalMovement = true;
-        consumeForce = true;
-      } else {
-        const direction =
-          input.queuedForce.kind === "dash"
-            ? input.queuedForce.direction
-            : input.queuedForce.blockDirection;
-        playerData.forward = direction;
-        const [dx, dy] = getPlayerDirectionDelta(direction);
-        const hasFrontBlock = hasBlockAt(
-          blocks,
-          playerData.preX + dx,
-          playerData.preY + dy,
-        );
-        if (
-          input.queuedForce.kind === "grip" &&
-          hasFrontBlock &&
-          input.spaceHeld
-        ) {
-          suppressNormalMovement = true;
-        } else if (hasFrontBlock) {
-          tryPushBlockChain(context, direction);
-          suppressNormalMovement = true;
-          consumeForce = true;
-        } else {
-          consumeForce = true;
-          if (
-            isOpenCell(
-              mapData,
-              blocks,
-              playerData.preX + dx,
-              playerData.preY + dy,
-            )
-          ) {
-            playerData.movementState = {
-              kind: "dashing",
-              direction,
-              remainingTiles: playerActionBalance.dashDistanceTiles,
-            };
-          } else {
-            suppressNormalMovement = true;
+      const { direction } = input.queuedForce;
+      playerData.forward = direction;
+      const [dx, dy] = getPlayerDirectionDelta(direction);
+      const hasFrontBlock = hasBlockAt(
+        blocks,
+        playerData.preX + dx,
+        playerData.preY + dy,
+      );
+      consumeForce = true;
+      if (hasFrontBlock) {
+        if (playerData.energy >= playerEnergyBalance.pushEnergyCost) {
+          const result = tryPushBlockChain(context, direction, now);
+          if (result.kind === "pushed") {
+            spendPlayerEnergy(playerData, playerEnergyBalance.pushEnergyCost);
           }
         }
+        suppressNormalMovement = true;
+      } else if (
+        playerData.energy >= playerEnergyBalance.dashEnergyCost &&
+        isOpenCell(mapData, blocks, playerData.preX + dx, playerData.preY + dy)
+      ) {
+        playerData.movementState = {
+          kind: "dashing",
+          direction,
+          remainingTiles: playerActionBalance.dashDistanceTiles,
+        };
+        spendPlayerEnergy(playerData, playerEnergyBalance.dashEnergyCost);
+      } else {
+        suppressNormalMovement = true;
       }
     }
     if (consumeForce) input.queuedForce = null;
@@ -138,13 +130,10 @@ export const playerMover = (
       if (wasDashing) playerData.movementState = { kind: "normal" };
     } else if (wasDashing) {
       const remainingTiles = movementState.remainingTiles - 1;
-      playerData.movementState =
-        remainingTiles > 0
-          ? {
-              ...movementState,
-              remainingTiles,
-            }
-          : { kind: "normal" };
+      playerData.movementState = {
+        ...movementState,
+        remainingTiles,
+      };
     }
 
     collectItemAtPlayerPosition(playerData, mapData);
@@ -152,11 +141,8 @@ export const playerMover = (
 
     if (playerData.nouhin === mapData.items.length) {
       playerData.nouhin = 0;
-      moveNextMap(now);
+      beginStageTransition(now);
       resetPlayerInputState(input);
-      if (settings.mode === "game") {
-        resetPlayerPosition(playerData, now);
-      }
       return;
     }
 
@@ -165,8 +151,10 @@ export const playerMover = (
       playerData.heldItems.length,
     );
     if (wasDashing) {
-      playerData.activeMoveIntervalSeconds *=
-        playerActionBalance.dashMoveIntervalMultiplier;
+      playerData.activeMoveIntervalSeconds = getPlayerDashMoveIntervalSeconds(
+        playerData.shurui,
+        playerData.heldItems.length,
+      );
     }
   }
 

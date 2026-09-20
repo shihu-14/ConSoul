@@ -22,6 +22,8 @@ export interface PlayerData {
   start: number;
   activeMoveIntervalSeconds: number;
   movementState: PlayerMovementState;
+  energy: number;
+  energyUpdatedAtSeconds: number;
   heldItems: number[];
   nouhin: number; // 納品したアイテムの数
   shurui: PlayerType;

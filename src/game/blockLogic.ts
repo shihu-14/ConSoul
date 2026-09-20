@@ -4,6 +4,7 @@ import { MapData } from "../data/mapData";
 import { CardinalPlayerDirection, PlayerData } from "../data/playerData";
 import { getPlayerDirectionDelta } from "./playerAction";
 import { hasBlockAt, isTerrainWalkable } from "./occupancy";
+import { playerActionBalance } from "../config/gameBalance";
 
 export interface BlockMoveContext {
   readonly map: MapData;
@@ -43,6 +44,7 @@ export type PushResult =
 export const tryPushBlockChain = (
   context: BlockMoveContext,
   direction: CardinalPlayerDirection,
+  nowSeconds = performance.now() / 1000,
 ): PushResult => {
   const [dx, dy] = getPlayerDirectionDelta(direction);
   let x = context.player.preX + dx;
@@ -54,6 +56,7 @@ export const tryPushBlockChain = (
 
   let block = blocksByPosition.get(`${x},${y}`);
   while (block) {
+    if (block.movement) return { kind: "blocked" };
     chain.push(block);
     x += dx;
     y += dy;
@@ -64,55 +67,46 @@ export const tryPushBlockChain = (
   if (!canBlockOccupyCell(context, x, y)) return { kind: "blocked" };
 
   for (let index = chain.length - 1; index >= 0; index -= 1) {
-    chain[index].x += dx;
-    chain[index].y += dy;
+    const movingBlock = chain[index];
+    movingBlock.renderX = movingBlock.x;
+    movingBlock.renderY = movingBlock.y;
+    movingBlock.movement = {
+      fromX: movingBlock.x,
+      fromY: movingBlock.y,
+      startedAtSeconds: nowSeconds,
+      intervalSeconds: playerActionBalance.blockPushMoveIntervalSeconds,
+    };
+    movingBlock.x += dx;
+    movingBlock.y += dy;
   }
   return { kind: "pushed", movedBlockCount: chain.length };
 };
 
-export type PullResult =
-  | { readonly kind: "noBlock" }
-  | { readonly kind: "blocked" }
-  | { readonly kind: "pulled" };
+export const updateBlockPositions = (
+  blocks: readonly BlockData[],
+  nowSeconds: number,
+) => {
+  blocks.forEach((block) => {
+    const { movement } = block;
+    if (!movement) {
+      block.renderX = block.x;
+      block.renderY = block.y;
+      return;
+    }
 
-export const tryPullBlock = (
-  context: BlockMoveContext,
-  blockDirection: CardinalPlayerDirection,
-  retreatDirection: CardinalPlayerDirection,
-): PullResult => {
-  const [blockDx, blockDy] = getPlayerDirectionDelta(blockDirection);
-  const [retreatDx, retreatDy] = getPlayerDirectionDelta(retreatDirection);
-  if (blockDx + retreatDx !== 0 || blockDy + retreatDy !== 0) {
-    return { kind: "blocked" };
-  }
+    const elapsedSeconds = nowSeconds - movement.startedAtSeconds;
+    if (elapsedSeconds >= movement.intervalSeconds - 1e-9) {
+      block.renderX = block.x;
+      block.renderY = block.y;
+      block.movement = undefined;
+      return;
+    }
 
-  const block = context.blocks.find(
-    ({ x, y }) =>
-      x === context.player.preX + blockDx &&
-      y === context.player.preY + blockDy,
-  );
-  if (!block) return { kind: "noBlock" };
-
-  const retreatX = context.player.preX + retreatDx;
-  const retreatY = context.player.preY + retreatDy;
-  const retreatIsBlocked =
-    !isTerrainWalkable(context.map, retreatX, retreatY) ||
-    hasBlockAt(context.blocks, retreatX, retreatY) ||
-    context.ghosts.some(
-      (ghost) =>
-        (ghost.gpreX === retreatX && ghost.gpreY === retreatY) ||
-        (ghost.gtargetX === retreatX && ghost.gtargetY === retreatY),
+    const progress = Math.max(
+      0,
+      Math.min(1, elapsedSeconds / movement.intervalSeconds),
     );
-  if (
-    retreatIsBlocked ||
-    !canBlockOccupyCell(context, context.player.preX, context.player.preY)
-  ) {
-    return { kind: "blocked" };
-  }
-
-  block.x = context.player.preX;
-  block.y = context.player.preY;
-  context.player.targetX = retreatX;
-  context.player.targetY = retreatY;
-  return { kind: "pulled" };
+    block.renderX = movement.fromX + (block.x - movement.fromX) * progress;
+    block.renderY = movement.fromY + (block.y - movement.fromY) * progress;
+  });
 };

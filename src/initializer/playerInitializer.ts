@@ -1,17 +1,28 @@
 import { PlayerInputState } from "../data/playerInput";
-import { PlayerData } from "../data/playerData";
-import {
-  queueForceIntent,
-  queuePullIntent,
-  releaseForce,
-} from "../game/playerAction";
+import { CardinalPlayerDirection, PlayerData } from "../data/playerData";
+import { queueForceIntent, queueStageRetry } from "../game/playerAction";
 import { settings } from "../settings";
 
-const isArrowKey = (key: string) =>
-  key === "ArrowUp" ||
-  key === "ArrowDown" ||
-  key === "ArrowLeft" ||
-  key === "ArrowRight";
+export const getPlayerDirectionForKey = (
+  key: string,
+): CardinalPlayerDirection | undefined => {
+  switch (key.toLowerCase()) {
+    case "arrowup":
+    case "w":
+      return "ArrowUp";
+    case "arrowdown":
+    case "s":
+      return "ArrowDown";
+    case "arrowleft":
+    case "a":
+      return "ArrowLeft";
+    case "arrowright":
+    case "d":
+      return "ArrowRight";
+    default:
+      return undefined;
+  }
+};
 
 export const playerInitializer = (
   playerData: PlayerData,
@@ -19,37 +30,25 @@ export const playerInitializer = (
 ) => {
   window.addEventListener("keydown", (e) => {
     if (settings.mode !== "game") return;
-    switch (e.key) {
-      case "ArrowUp":
-        input.direction = "ArrowUp";
-        queuePullIntent(input, "ArrowUp");
-        break;
-      case "ArrowDown":
-        input.direction = "ArrowDown";
-        queuePullIntent(input, "ArrowDown");
-        break;
-      case "ArrowLeft":
-        input.direction = "ArrowLeft";
-        queuePullIntent(input, "ArrowLeft");
-        break;
-      case "ArrowRight":
-        input.direction = "ArrowRight";
-        queuePullIntent(input, "ArrowRight");
-        break;
-      case " ":
-        queueForceIntent(input, playerData.forward, e.repeat);
-        break;
-      default:
-        break;
+    const direction = getPlayerDirectionForKey(e.key);
+    if (direction) {
+      input.direction = direction;
+      return;
+    }
+    if (e.key === " ") {
+      queueForceIntent(
+        input,
+        playerData.forward,
+        e.repeat,
+        playerData.movementState.kind === "normal",
+      );
+    } else if (e.key.toLowerCase() === "r") {
+      queueStageRetry(input, e.repeat);
     }
   });
 
   window.addEventListener("keyup", (e) => {
-    if (e.key === " ") {
-      releaseForce(input);
-      return;
-    }
-    if (!isArrowKey(e.key)) return;
-    if (e.key === input.direction) input.direction = "None";
+    const direction = getPlayerDirectionForKey(e.key);
+    if (direction === input.direction) input.direction = "None";
   });
 };
