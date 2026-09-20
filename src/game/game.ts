@@ -184,7 +184,6 @@ export const updateGame = (
   const events: GameSignal[] = [];
   const elapsedDelta = Math.max(0, deltaSeconds);
   if (game.mode === "stageTransition") {
-    game.elapsedSeconds += elapsedDelta;
     // 進行度を別状態にせず，モード開始時刻と固定時間の差だけで遷移を確定する．
     if (
       nowSeconds - game.modeStartedAtSeconds + EPS >=

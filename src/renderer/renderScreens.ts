@@ -1,10 +1,9 @@
 /**
- * タイトル，ステージ移行，結果，ゲームオーバーの各画面を描画する．
+ * タイトル，結果，ゲームオーバーの各画面を描画する．
  */
 
 import { GameState } from "../game/types";
 import { getImage } from "./assets";
-import { FIELD_SIZE } from "./gameLayout";
 
 const TITLE_SELECTION_NUMBER_SOURCE_X = [510, 885, 1245] as const;
 const TITLE_SELECTION_NUMBER_SOURCE_Y = 1010;
@@ -111,27 +110,4 @@ export const renderResult = (
  */
 export const renderGameOver = (context: CanvasRenderingContext2D) => {
   drawFullScreenImage(context, getImage("gameover"));
-};
-
-/**
- * StageTransition画面の暗幕と次のStage番号を描画する．
- * StageのSimulationはGame側で停止し，この関数は表示だけを担当する．
- */
-export const renderStageTransition = (
-  game: GameState,
-  context: CanvasRenderingContext2D,
-) => {
-  context.save();
-  context.fillStyle = "rgba(0, 0, 0, 0.62)";
-  context.fillRect(0, 0, FIELD_SIZE, context.canvas.height);
-  context.fillStyle = "#ffffff";
-  context.strokeStyle = "#1b1b1b";
-  context.lineWidth = 8;
-  context.font = "bold 72px monospace";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  const label = `STAGE ${game.stageIndex + 2}`;
-  context.strokeText(label, FIELD_SIZE / 2, context.canvas.height / 2);
-  context.fillText(label, FIELD_SIZE / 2, context.canvas.height / 2);
-  context.restore();
 };

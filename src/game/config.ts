@@ -35,7 +35,7 @@ export const gameConfig = {
     dashDistanceTiles: 3,
     dashSpeedMultiplier: 2,
     blockPushDurationSeconds: 0.25,
-    stageTransitionSeconds: 1,
+    stageTransitionSeconds: 2,
   },
   energy: {
     maximum: 100,
