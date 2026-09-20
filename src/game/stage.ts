@@ -3,200 +3,28 @@
  */
 
 import { BlockState, EnemyState, Position, StageState } from "./types";
+import {
+  stageSources,
+  type StageEnemySource,
+  type StageSource,
+} from "./stageSources";
 
 const WIDTH = 20;
 const HEIGHT = 20;
 
-const stageSources = [
-  {
-    grid: `
-####################
-#..................#
-#.BBBBBBB..BBBBBBB.#
-#.B..............B.#
-#.B.BBBBBBBBB.BB.B.#
-#.B.B..........B.B.#
-#...B.BB.BBBBB.B...#
-#.B.B.B......B.B.B.#
-#.B...B.BB.B...B.B.#
-#.B.B.B.B..B.B.B.B.#
-#.B.B.B.B..B.B.B.B.#
-#.B.B...B.BB.B...B.#
-#.B.B.B......B.B.B.#
-#...B.BBBBB.BB.B...#
-#.B.B..........B.B.#
-#.B.BB.BBBBBBBBB.B.#
-#.B..............B.#
-#.BBBBBBB..BBBBBBB.#
-#..................#
-####################
-`.replace(/\n/g, ""),
-    items: [
-      [3, 3],
-      [16, 16],
-      [18, 1],
-      [1, 18],
-    ],
-    post: [9, 9],
-    playerStart: [10, 10],
-    enemies: [
-      {
-        type: "patrol",
-        position: [5, 5],
-        route: [
-          [5, 5],
-          [6, 5],
-          [7, 5],
-          [8, 5],
-          [8, 6],
-          [8, 7],
-          [7, 7],
-          [7, 8],
-          [7, 9],
-          [7, 10],
-          [7, 11],
-          [6, 11],
-          [5, 11],
-          [5, 10],
-          [5, 9],
-          [5, 8],
-          [5, 7],
-          [5, 6],
-        ],
-      },
-      { type: "random", position: [14, 5] },
-      { type: "chase", position: [10, 18], chaseProbability: 0.55 },
-    ],
-  },
-  {
-    grid: `
-####################
-#..................#
-#.B.BB.B.B.BB.B.BB.#
-#.B.B..B.B..B.B..B.#
-#........BB.B.BB...#
-#.BBB.BB.B.......B.#
-#.B...BB...BB.BB.B.#
-#.B.B....B.B.......#
-#.B.B.B.BB.B.BBB.B.#
-#.B...B..B...B...B.#
-#...B..B...B...BBB.#
-#.BBBB...BBBBB.B...#
-#...B..B.......B.B.#
-#.B...BB.B.BBB.B.B.#
-#.B.B....B.B.......#
-#...B.B.BB.B.BBBBB.#
-#.BBB.B..........B.#
-#.B...BBB.B.BBBB.B.#
-#..................#
-####################
-`.replace(/\n/g, ""),
-    items: [
-      [1, 1],
-      [16, 3],
-      [3, 17],
-      [18, 18],
-    ],
-    post: [10, 9],
-    playerStart: [10, 10],
-    enemies: [
-      {
-        type: "patrol",
-        position: [1, 1],
-        route: [
-          [1, 1],
-          [2, 1],
-          [3, 1],
-          [4, 1],
-          [5, 1],
-          [6, 1],
-          [6, 2],
-          [6, 3],
-          [5, 3],
-          [5, 4],
-          [4, 4],
-          [3, 4],
-          [2, 4],
-          [1, 4],
-          [1, 3],
-          [1, 2],
-        ],
-      },
-      { type: "random", position: [17, 18] },
-      { type: "chase", position: [10, 18], chaseProbability: 0.82 },
-      { type: "rush", position: [18, 1] },
-    ],
-  },
-  {
-    grid: `
-####################
-#.B........BB.B....#
-#.B.BBB.BB....B.BBB#
-#.B.B...BB.BB......#
-#.B.B.B.BB.BB.BBBB.#
-#...B...B........B.#
-#BB.BBB...B.BB.B...#
-#.....BBBBB.BB.BBBB#
-#.BBB.....B.B......#
-#.....BBB...BBB.BB.#
-#BBBB..B...BBBB.BB.#
-#......B.B......BB.#
-#.BBBB.B.BBBBB.....#
-#...BB.B.B...B.B.BB#
-#.B......B.B.B.B...#
-#.BBBB.B.......B.B.#
-#......BBBBBBB.B.B.#
-#BBB.B.B....BB.B.B.#
-#....B...BB......B.#
-####################
-`.replace(/\n/g, ""),
-    items: [
-      [1, 1],
-      [18, 1],
-      [1, 18],
-      [18, 18],
-    ],
-    post: [10, 9],
-    playerStart: [10, 10],
-    enemies: [
-      {
-        type: "patrol",
-        position: [7, 1],
-        route: [
-          [7, 1],
-          [8, 1],
-          [9, 1],
-          [10, 1],
-          [10, 2],
-          [10, 3],
-          [10, 4],
-          [10, 5],
-          [9, 5],
-          [9, 6],
-          [8, 6],
-          [7, 6],
-          [7, 5],
-          [7, 4],
-          [7, 3],
-          [7, 2],
-        ],
-      },
-      { type: "random", position: [1, 18] },
-      { type: "chase", position: [16, 18], chaseProbability: 0.82 },
-      { type: "chase", position: [13, 5], chaseProbability: 0.96 },
-      { type: "rush", position: [16, 1] },
-    ],
-  },
-] as const;
-
+/**
+ * 原本のタプル座標を実行時のPositionオブジェクトへ変換する．
+ */
 const toPosition = (value: readonly [number, number]): Position => ({
   x: value[0],
   y: value[1],
 });
 
-const createEnemy = (
-  source: (typeof stageSources)[number]["enemies"][number],
-): EnemyState => {
+/**
+ * Stage原本のEnemy定義を実行時のEnemyStateへ変換する．
+ * 種別ごとの初期モード，方向，移動状態，巡回経路を新しいオブジェクトとして作成する．
+ */
+const createEnemy = (source: StageEnemySource): EnemyState => {
   const position = toPosition(source.position);
   switch (source.type) {
     case "random":
@@ -234,6 +62,33 @@ const createEnemy = (
   }
 };
 
+let stageSourcesValidated = false;
+let stageSourcesValidationError: Error | null = null;
+
+/**
+ * 本番のStage原本を初回だけ検証し，成功または失敗の結果を保持する．
+ * 失敗時は保持したErrorを再throwし，不正な原本からStageStateを生成しない不変条件を守る．
+ */
+const ensureValidStageSources = () => {
+  if (stageSourcesValidated) {
+    if (stageSourcesValidationError) throw stageSourcesValidationError;
+    return;
+  }
+  // 公開APIをまとめるため，検証関数は実行時ファクトリの下に定義する．
+  // eslint-disable-next-line no-use-before-define
+  const errors = validateStages();
+  stageSourcesValidated = true;
+  if (errors.length > 0) {
+    stageSourcesValidationError = new Error(
+      `Stage原本が不正です。\n${errors.join("\n")}`,
+    );
+    throw stageSourcesValidationError;
+  }
+};
+
+/**
+ * 定義済みStageの総数を返す．
+ */
 export const getStageCount = () => stageSources.length;
 
 /**
@@ -241,6 +96,7 @@ export const getStageCount = () => stageSources.length;
  * 原本の文字列と配列を直接再利用せず，Block，Item，Enemy，経路，座標をすべて複製して初期化する．
  */
 export const createStage = (stageIndex: number): StageState => {
+  ensureValidStageSources();
   const source = stageSources[stageIndex];
   if (!source) throw new Error(`ステージ${stageIndex + 1}は存在しません。`);
 
@@ -270,6 +126,9 @@ export const createStage = (stageIndex: number): StageState => {
   };
 };
 
+/**
+ * 原本の座標が20×20のStage範囲内にある整数座標か判定する．
+ */
 const isInside = (position: readonly [number, number]) =>
   Number.isInteger(position[0]) &&
   Number.isInteger(position[1]) &&
@@ -278,9 +137,18 @@ const isInside = (position: readonly [number, number]) =>
   position[0] < WIDTH &&
   position[1] < HEIGHT;
 
-export const validateStages = () => {
+/**
+ * 全Stageの原本データがゲームの前提条件を満たすか検証する．
+ * 盤面サイズ，セル種別，外周壁，配置座標，巡回経路の隣接性を確認し，エラー一覧を返す．
+ */
+export function validateStages(
+  sources: readonly StageSource[] = stageSources,
+): string[] {
   const errors: string[] = [];
-  stageSources.forEach((stage, stageIndex) => {
+  sources.forEach((stage, stageIndex) => {
+    /**
+     * Stage原本内の配置座標が範囲内かつ床セルかを検証する．
+     */
     const validateWalkablePosition = (
       position: readonly [number, number],
       label: string,
@@ -326,6 +194,20 @@ export const validateStages = () => {
     stage.enemies.forEach((enemy) => {
       validateWalkablePosition(enemy.position, `${enemy.type} Enemy`);
       if (enemy.type === "patrol") {
+        if (enemy.route.length === 0) {
+          errors.push(`Stage ${stageIndex + 1}のPatrol Routeが空です。`);
+          return;
+        }
+        const firstDestination = enemy.route[1 % enemy.route.length];
+        if (
+          Math.abs(enemy.position[0] - firstDestination[0]) +
+            Math.abs(enemy.position[1] - firstDestination[1]) !==
+          1
+        ) {
+          errors.push(
+            `Stage ${stageIndex + 1}のPatrol Enemyから初回移動先が隣接していません。`,
+          );
+        }
         enemy.route.forEach((position, routeIndex) => {
           validateWalkablePosition(position, `Patrol Route ${routeIndex}`);
           const next = enemy.route[(routeIndex + 1) % enemy.route.length];
@@ -343,4 +225,4 @@ export const validateStages = () => {
     });
   });
   return errors;
-};
+}

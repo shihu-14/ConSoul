@@ -8,6 +8,7 @@ import {
   getPlayerSpeedTilesPerSecond,
 } from "./config";
 import { findTouchingBlock, tryStartPush } from "./block";
+import { GameSignal } from "./events";
 import { getNextPosition, isCellBlocked, positionsEqual } from "./grid";
 import {
   CharacterType,
@@ -17,17 +18,17 @@ import {
   StageState,
 } from "./types";
 
-const EPSILON = 1e-8;
+const EPS = 1e-8;
 
 /**
- * Playerの初期状態を作成する。
- * positionは移動完了済みの整数セル座標として複製し、方向は右向き、移動状態は未開始、Energyは最大値、所持アイテムは空で初期化する。
+ * Playerの初期状態を作成する．
+ * logicalPositionを移動完了済みの整数セル座標として複製し，方向は右向き，移動状態は未開始，Energyは最大値，所持アイテムは空で初期化する．
  */
 export const createPlayer = (
   characterType: CharacterType,
-  position: Position,
+  logicalPosition: Readonly<Position>,
 ): PlayerState => ({
-  position: { ...position },
+  position: { ...logicalPosition },
   direction: "right",
   characterType,
   movement: null,
@@ -36,81 +37,125 @@ export const createPlayer = (
 });
 
 /**
- * Playerが現在いる整数セルに残っているItemを取得する。
- * 取得したItemはStageのremainingItemsから同じオブジェクトのまま取り除き、PlayerのheldItemsへ移動する。
+ * Playerが現在いる整数セルに残っているItemを取得する．
+ * 取得したItemはStageのremainingItemsから同じオブジェクトのまま取り除き，PlayerのheldItemsへ移動する．
  */
 const collectItems = (player: PlayerState, stage: StageState) => {
   const collected = stage.remainingItems.filter((item) =>
     positionsEqual(player.position, item.position),
   );
-  if (collected.length === 0) return;
+  if (collected.length === 0) return false;
   const collectedSet = new Set(collected);
   stage.remainingItems = stage.remainingItems.filter(
     (item) => !collectedSet.has(item),
   );
   player.heldItems.push(...collected);
+  return true;
 };
 
 /**
- * PlayerがPostの整数セルに到達したとき、所持中のItemを一括で納品する。
- * 納品後はPlayerのheldItemsを空にし、StageのdeliveredItemsへ同じItemオブジェクトを移動する。
+ * PlayerがPostの整数セルに到達したとき，所持中のItemを一括で納品する．
+ * 納品後はPlayerのheldItemsを空にし，StageのdeliveredItemsへ同じItemオブジェクトを移動する．
  */
 const deliverItems = (player: PlayerState, stage: StageState) => {
   if (
     player.heldItems.length === 0 ||
     !positionsEqual(player.position, stage.post)
   ) {
-    return;
+    return false;
   }
   stage.deliveredItems.push(...player.heldItems);
   player.heldItems = [];
+  return true;
 };
 
 /**
- * Playerの通常歩行とDashを時間経過分だけ進める。
- * 移動中のdirectionはセル境界まで固定し、次のセルへ進む直前だけ新しい入力方向を採用する。
- * positionはセル境界で整数更新し、セル途中の表示位置はmovement.elapsedDistanceからRendererが導出する。
- * Energy回復、Item取得、Postへの納品もこの更新処理に含める。
+ * deltaSecondsを負数補正してPlayerのEnergyを回復する．
+ * PlayerのEnergyだけを最大値まで更新し，最大値を超えない不変条件を守る．
  */
-export const updatePlayer = (
+const recoverPlayerEnergy = (
   player: PlayerState,
-  stage: StageState,
-  moveDirection: Direction | null,
   deltaSeconds: number,
-) => {
-  // 負の時間は受け付けず、Energy回復量と移動量を常に0以上にする。
+): void => {
   const elapsedSeconds = Math.max(0, deltaSeconds);
-  // Energyは自然回復するが、設定された最大値を超えない。
   player.energy = Math.min(
     gameConfig.energy.maximum,
     player.energy + elapsedSeconds * gameConfig.energy.recoveryPerSecond,
   );
+};
 
-  collectItems(player, stage);
-  deliverItems(player, stage);
+/**
+ * 現在セルのItem取得とPost納品を順序どおり解決する．
+ * StageとPlayerのItem配列を更新し，発生した処理ごとにGameSignalを追加する．
+ */
+const resolvePlayerItems = (
+  player: PlayerState,
+  stage: StageState,
+  signals: GameSignal[],
+): void => {
+  if (collectItems(player, stage)) signals.push({ type: "itemPickup" });
+  if (deliverItems(player, stage)) signals.push({ type: "itemDeliver" });
+};
 
-  // 1回の更新で複数セル進めるため，未消費時間を保持してセル境界ごとに再評価する．
-  let remainingSeconds = elapsedSeconds;
+/**
+ * 歩行距離の境界通過時だけ歩行と軋みのGameSignalを発生させる．
+ * 歩行以外の移動，特にDashではSignalを発生させず，既存のSignal配列だけを追加更新する．
+ */
+const emitPlayerWalkSignals = (
+  movement: PlayerState["movement"],
+  previousElapsedDistance: number,
+  speed: number,
+  signals: GameSignal[],
+  random: () => number,
+): void => {
+  if (
+    movement?.type !== "walk" ||
+    previousElapsedDistance + EPS >= gameConfig.audio.playerWalkDistanceTiles ||
+    movement.elapsedDistance + EPS < gameConfig.audio.playerWalkDistanceTiles
+  ) {
+    return;
+  }
+
+  signals.push({
+    type: "playerStep",
+    durationSeconds: gameConfig.audio.playerWalkDistanceTiles / speed,
+  });
+  if (random() < gameConfig.audio.playerCreakProbability) {
+    signals.push({ type: "playerCreak" });
+  }
+};
+
+/**
+ * 入力方向を固定して壁判定，elapsedDistance，セル境界，Dash残りセル，残り時間を処理する．
+ * 移動状態とSignal配列を更新し，PlayerのlogicalPositionはセル完了時だけ更新する不変条件を守る．
+ */
+const advancePlayerMovement = (
+  player: PlayerState,
+  stage: StageState,
+  moveDirection: Direction | null,
+  deltaSeconds: number,
+  signals: GameSignal[],
+  random: () => number,
+): void => {
+  let remainingSeconds = Math.max(0, deltaSeconds);
   let evaluateInput = true;
-  while (evaluateInput || remainingSeconds > EPSILON) {
+  while (evaluateInput || remainingSeconds > EPS) {
     evaluateInput = false;
-    // 移動中でないセル境界だけで入力方向を採用する．移動中の方向はこの条件を通らないため固定される．
     if (!player.movement) {
       if (!moveDirection) return;
       player.direction = moveDirection;
-      // 通常歩行は1セル分の移動として開始する．
       player.movement = { type: "walk", elapsedDistance: 0 };
     }
 
     const { movement } = player;
     if (
-      movement.elapsedDistance <= EPSILON &&
+      movement.elapsedDistance <= EPS &&
       isCellBlocked(stage, getNextPosition(player.position, player.direction))
     ) {
       player.movement = null;
       return;
     }
-    if (remainingSeconds <= EPSILON) return;
+    if (remainingSeconds <= EPS) return;
 
     const speed =
       movement.type === "dash"
@@ -119,15 +164,23 @@ export const updatePlayer = (
             player.characterType,
             player.heldItems.length,
           );
+    const previousElapsedDistance = movement.elapsedDistance;
     const distanceToNextCell = 1 - movement.elapsedDistance;
     const distance = Math.min(speed * remainingSeconds, distanceToNextCell);
     movement.elapsedDistance += distance;
     remainingSeconds = Math.max(0, remainingSeconds - distance / speed);
 
-    if (distance + EPSILON < distanceToNextCell) return;
+    emitPlayerWalkSignals(
+      movement,
+      previousElapsedDistance,
+      speed,
+      signals,
+      random,
+    );
+
+    if (distance + EPS < distanceToNextCell) return;
     player.position = getNextPosition(player.position, player.direction);
-    collectItems(player, stage);
-    deliverItems(player, stage);
+    resolvePlayerItems(player, stage, signals);
 
     if (movement.type === "dash") {
       movement.remainingCells -= 1;
@@ -143,9 +196,35 @@ export const updatePlayer = (
 };
 
 /**
+ * Playerの通常歩行とDashを時間経過分だけ進める．
+ * 移動中のdirectionはセル境界まで固定し，次のセルへ進む直前だけ新しい入力方向を採用する．
+ * logicalPositionはセル境界で整数更新し，セル途中のdisplayPositionはmovement.elapsedDistanceからRendererが導出する．
+ * Energy回復と現在セルのItem効果を解決してから移動を進める．
+ */
+export const updatePlayer = (
+  player: PlayerState,
+  stage: StageState,
+  moveDirection: Direction | null,
+  deltaSeconds: number,
+  random: () => number = Math.random,
+): GameSignal[] => {
+  const signals: GameSignal[] = [];
+  recoverPlayerEnergy(player, deltaSeconds);
+  resolvePlayerItems(player, stage, signals);
+  advancePlayerMovement(
+    player,
+    stage,
+    moveDirection,
+    deltaSeconds,
+    signals,
+    random,
+  );
+  return signals;
+};
+
+/**
  * Space相当の1回のActionを処理する．
  * 歩行中は現在方向のDashへ切り替え，Dash中は無視する．停止中は接触BlockのPushを優先する．
- * 失敗したPushはDashへフォールバックせず，失敗したActionはEnergyを消費しない．
  */
 export const performPlayerAction = (
   player: PlayerState,

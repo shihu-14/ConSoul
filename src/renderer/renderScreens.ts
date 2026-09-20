@@ -4,8 +4,8 @@
 
 import { GameState } from "../game/types";
 import { getImage } from "./assets";
+import { FIELD_SIZE } from "./gameLayout";
 
-const FIELD_SIZE = 960;
 const TITLE_SELECTION_NUMBER_SOURCE_X = [510, 885, 1245] as const;
 const TITLE_SELECTION_NUMBER_SOURCE_Y = 1010;
 const TITLE_SELECTION_NUMBER_COVER_WIDTH = 110;
@@ -17,6 +17,10 @@ const TITLE_SELECTION_NUMBER_PATTERNS = [
   ["###", "..#", "###", "..#", "###"],
 ] as const;
 
+/**
+ * 画像をCanvasの高さに合わせて縦いっぱいに描画する．
+ * 画像のアスペクト比を維持し，横方向にはみ出した分を中央基準で切り取る．
+ */
 const drawFullScreenImage = (
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
@@ -28,6 +32,10 @@ const drawFullScreenImage = (
   return { offsetX, imageScale: height / image.height };
 };
 
+/**
+ * Title画面の背景画像とキャラクター選択番号を描画する．
+ * 番号は画像上の指定位置を隠してピクセルパターンを描き，1から3の選択肢を表示する．
+ */
 export const renderTitle = (context: CanvasRenderingContext2D) => {
   const titleImage = getImage("title");
   const { offsetX, imageScale } = drawFullScreenImage(context, titleImage);
@@ -62,22 +70,35 @@ export const renderTitle = (context: CanvasRenderingContext2D) => {
   context.restore();
 };
 
+/**
+ * Result画面の背景画像とRunの経過時間を分と秒で描画する．
+ * 経過時間は0未満にならないように補正してから整数秒へ丸める．
+ */
 export const renderResult = (
   game: GameState,
   context: CanvasRenderingContext2D,
 ) => {
+  context.save();
   drawFullScreenImage(context, getImage("result"));
   const elapsedSeconds = Math.max(0, Math.round(game.elapsedSeconds));
   context.fillStyle = "#ffffff";
   context.font = '75px "Press Start 2P", sans-serif';
   context.fillText(`0${Math.floor(elapsedSeconds / 60)}`.slice(-2), 125, 290);
   context.fillText(`0${elapsedSeconds % 60}`.slice(-2), 325, 290);
+  context.restore();
 };
 
+/**
+ * GameOver画面の背景画像をCanvas全体へ描画する．
+ */
 export const renderGameOver = (context: CanvasRenderingContext2D) => {
   drawFullScreenImage(context, getImage("gameover"));
 };
 
+/**
+ * StageTransition画面の暗幕と次のStage番号を描画する．
+ * StageのSimulationはGame側で停止し，この関数は表示だけを担当する．
+ */
 export const renderStageTransition = (
   game: GameState,
   context: CanvasRenderingContext2D,
