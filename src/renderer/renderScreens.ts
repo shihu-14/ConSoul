@@ -11,6 +11,10 @@ const TITLE_SELECTION_NUMBER_SOURCE_Y = 1010;
 const TITLE_SELECTION_NUMBER_COVER_WIDTH = 110;
 const TITLE_SELECTION_NUMBER_COVER_HEIGHT = 100;
 const TITLE_SELECTION_NUMBER_PIXEL_SIZE = 12;
+const RESULT_MINUTE_NUMBER_RIGHT_X = 136;
+const RESULT_SECOND_NUMBER_RIGHT_X = 230;
+const RESULT_TIME_BASELINE_Y = 140;
+const RESULT_TIME_FONT_SIZE = 18.75;
 const TITLE_SELECTION_NUMBER_PATTERNS = [
   [".#.", "##.", ".#.", ".#.", "###"],
   ["###", "..#", "###", "#..", "###"],
@@ -79,12 +83,26 @@ export const renderResult = (
   context: CanvasRenderingContext2D,
 ) => {
   context.save();
-  drawFullScreenImage(context, getImage("result"));
+  const { offsetX, imageScale } = drawFullScreenImage(
+    context,
+    getImage("result"),
+  );
   const elapsedSeconds = Math.max(0, Math.round(game.elapsedSeconds));
   context.fillStyle = "#ffffff";
-  context.font = '75px "Press Start 2P", sans-serif';
-  context.fillText(`0${Math.floor(elapsedSeconds / 60)}`.slice(-2), 125, 290);
-  context.fillText(`0${elapsedSeconds % 60}`.slice(-2), 325, 290);
+  context.font = `${RESULT_TIME_FONT_SIZE * imageScale}px "Press Start 2P", sans-serif`;
+  context.textAlign = "right";
+  context.textBaseline = "alphabetic";
+  const baselineY = RESULT_TIME_BASELINE_Y * imageScale;
+  context.fillText(
+    `0${Math.floor(elapsedSeconds / 60)}`.slice(-2),
+    RESULT_MINUTE_NUMBER_RIGHT_X * imageScale - offsetX,
+    baselineY,
+  );
+  context.fillText(
+    `0${elapsedSeconds % 60}`.slice(-2),
+    RESULT_SECOND_NUMBER_RIGHT_X * imageScale - offsetX,
+    baselineY,
+  );
   context.restore();
 };
 
