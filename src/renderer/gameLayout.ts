@@ -9,7 +9,6 @@ export const PANEL_Y = 620;
 export const PANEL_HEIGHT = FIELD_SIZE - PANEL_Y;
 export const PANEL_PADDING = 16;
 export const ITEM_ICON_SIZE = 50;
-export const ITEM_ICON_GAP = 15;
 export const MOVEMENT_ICON_SIZE = 46;
 export const ACTION_ICON_SIZE = 104;
 export const KEY_ICON_GAP = 1;
