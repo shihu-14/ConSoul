@@ -26,7 +26,6 @@ import { renderTutorial } from "./renderer/renderTutorial";
 import {
   renderGameOver,
   renderResult,
-  renderStageTransition,
   renderTitle,
 } from "./renderer/renderScreens";
 import {
@@ -153,7 +152,6 @@ const tick = (timestampMilliseconds: number) => {
       break;
     case "stageTransition":
       renderGame(game, context, nowSeconds);
-      renderStageTransition(game, context);
       break;
     case "result":
       renderResult(game, context);
