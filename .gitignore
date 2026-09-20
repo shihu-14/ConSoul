@@ -11,6 +11,15 @@ node_modules
 dist
 dist-ssr
 *.local
+playwright-report
+test-results
+
+# Local tests and test automation
+tests/
+playwright.config.ts
+vitest.config.ts
+tsconfig.test.json
+.github/workflows/ci.yml
 
 # Editor directories and files
 .vscode/*

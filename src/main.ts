@@ -1,116 +1,113 @@
-import './style.css';
-import { mapRender } from './renderer/mapRender';
-import { playerRender } from './renderer/playerRender';
-import { ghostRender } from './renderer/ghostRender';
-import { settings } from './settings';
-
-import { PlayerData } from './data/playerData';
-
-import { playerMover } from './mover/playerMover';
-import { playerInitializer } from './initializer/playerInitializer';
-import { gameInitializer } from './initializer/gameInitializer';
-
-import { getCurrentMap } from './controller/stageController';
+import "./style.css";
 import {
-  titleRendering, resultRendering, result2Rrendering,
-} from './renderer/screenRenderer';
-import { titleKeydownEvent, resultKeydownEvent, result2KeydownEvent } from './initializer/screenInitializer';
-
-import { GhostData } from './data/ghostData';
-import { ghostMover } from './mover/ghostMover';
-import { resizeField } from './renderer/resizeField';
+  getCurrentBlocks,
+  getCurrentGhosts,
+  getCurrentMap,
+} from "./controller/stageController";
+import { PlayerData } from "./data/playerData";
+import { createPlayerInputState } from "./game/playerAction";
+import { gameInitializer } from "./initializer/gameInitializer";
+import { playerInitializer } from "./initializer/playerInitializer";
+import {
+  result2KeydownEvent,
+  resultKeydownEvent,
+  titleKeydownEvent,
+} from "./initializer/screenInitializer";
+import { ghostMover } from "./mover/ghostMover";
+import { playerMover } from "./mover/playerMover";
+import { ghostRender } from "./renderer/ghostRender";
+import { inventoryRender } from "./renderer/inventoryRender";
+import { mapRender } from "./renderer/mapRender";
+import { playerRender } from "./renderer/playerRender";
+import { resizeField } from "./renderer/resizeField";
+import { blockRender } from "./renderer/blockRender";
+import {
+  result2Rrendering,
+  resultRendering,
+  titleRendering,
+} from "./renderer/screenRenderer";
+import { settings } from "./settings";
 
 const Hackathon = () => {
-  const canvas = document.getElementById('cnv') as HTMLCanvasElement;
-  if (!canvas) throw new Error('Canvas not found');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Canvas context not found');
+  const canvas = document.getElementById("cnv") as HTMLCanvasElement;
+  if (!canvas) throw new Error("Canvas not found");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas context not found");
   ctx.imageSmoothingEnabled = false;
 
-  const playerData:PlayerData = {
+  const playerData: PlayerData = {
     x: 10,
     y: 10,
-    direction: 'None',
-    forward: 'ArrowRight',
+    forward: "ArrowRight",
     targetX: 10,
     targetY: 10,
     preX: 1,
     preY: 1,
     start: 0,
-    have: 0,
+    activeMoveIntervalSeconds: 0,
+    movementState: { kind: "normal" },
+    dashReadyAtSeconds: 0,
+    heldItems: [],
     nouhin: 0,
-    shurui: 'student',
+    shurui: "student",
   };
+  const playerInput = createPlayerInputState();
+  let preMode = "title";
 
-  const ghostData1: GhostData = { // ランダム挙動
-    gtype: 'random',
-    gx: 5,
-    gy: 5, // ghostの初期位置
-    gdirect: 'gNone',
-    ginterval: 0.5, // ?秒で次のマスに移動するとする
-    gtargetX: 5,
-    gtargetY: 5,
-    gpreX: 5,
-    gpreY: 5,
-    gstart: Date.now() / 1000,
-  };
-  const ghostData2: GhostData = { // Target挙動
-    gtype: 'chase',
-    gx: 5,
-    gy: 5, // ghostの初期位置
-    gdirect: 'gNone',
-    ginterval: 0.5, // ?秒で次のマスに移動するとする
-    gtargetX: 5,
-    gtargetY: 5,
-    gpreX: 5,
-    gpreY: 5,
-    gstart: Date.now() / 1000,
-  };
-  let preMode = 'title';
-
-  playerInitializer(playerData);
-
-  // keydownイベントが起こったときの画面遷移
+  playerInitializer(playerData, playerInput);
   titleKeydownEvent(playerData);
   resultKeydownEvent();
   result2KeydownEvent();
 
   const tick = () => {
     requestAnimationFrame(tick);
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const nowMap = getCurrentMap();
-
     switch (settings.mode) {
-      case 'title': {
-        // title rendering
+      case "title": {
         titleRendering(ctx);
         break;
       }
-      case 'game':
-        if (preMode === 'title') gameInitializer(playerData, [ghostData1, ghostData2]);
+      case "game": {
+        if (preMode === "title") gameInitializer(playerData, playerInput);
 
-        ghostMover(ghostData1, nowMap, playerData); // ghostData1とか分けたい
-        ghostMover(ghostData2, nowMap, playerData);
-        playerMover(playerData, nowMap, [ghostData1, ghostData2]);
-        resizeField(ctx, () => {
-          mapRender(nowMap, ctx);
-          playerRender(playerData, nowMap, ctx);
-          ghostRender(ghostData1, nowMap, ctx);
-          ghostRender(ghostData2, nowMap, ctx);
+        const currentMap = getCurrentMap();
+        const currentGhosts = getCurrentGhosts();
+        const currentBlocks = getCurrentBlocks();
+        currentGhosts.forEach((ghost) => {
+          ghostMover(ghost, currentMap, playerData, undefined, currentBlocks);
         });
+        playerMover(
+          playerData,
+          currentMap,
+          currentGhosts,
+          playerInput,
+          undefined,
+          currentBlocks,
+        );
+
+        const renderMap = getCurrentMap();
+        const renderGhosts = getCurrentGhosts();
+        const renderBlocks = getCurrentBlocks();
+        resizeField(ctx, () => {
+          mapRender(renderMap, ctx);
+          blockRender(renderBlocks, renderMap, ctx);
+          playerRender(playerData, renderMap, ctx);
+          renderGhosts.forEach((ghost) => {
+            ghostRender(ghost, renderMap, ctx);
+          });
+        });
+        inventoryRender(playerData, ctx);
         break;
-      case 'result':
-        // result rendering
+      }
+      case "result":
         resultRendering(ctx);
         break;
-      case 'result2':
-        // 失敗時result rendering
+      case "result2":
         result2Rrendering(ctx);
         break;
       default:
-        throw new Error('Unknown mode');
+        throw new Error("Unknown mode");
     }
     preMode = settings.mode;
   };

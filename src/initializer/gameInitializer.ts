@@ -1,26 +1,44 @@
-import { PlayerData } from '../data/playerData';
-import { GhostData } from '../data/ghostData';
-import { stageReset } from '../controller/stageController';
-import { settings } from '../settings';
+import { getCurrentMap, stageReset } from "../controller/stageController";
+import { PlayerData } from "../data/playerData";
+import { settings } from "../settings";
+import { getPlayerMoveIntervalSeconds } from "../config/gameBalance";
+import { PlayerInputState } from "../data/playerInput";
 
-export const gameInitializer = (playerData :PlayerData, ghostDatas:GhostData[]) => {
-  playerData.x = 10;
-  playerData.y = 10;
-  playerData.targetX = 10;
-  playerData.targetY = 10;
-  playerData.preX = 10;
-  playerData.preY = 10;
-  playerData.have = 0;
+export const resetPlayerPosition = (
+  playerData: PlayerData,
+  nowSeconds = performance.now() / 1000,
+) => {
+  const [startX, startY] = getCurrentMap().playerStart;
+  playerData.x = startX;
+  playerData.y = startY;
+  playerData.targetX = startX;
+  playerData.targetY = startY;
+  playerData.preX = startX;
+  playerData.preY = startY;
+  playerData.start = nowSeconds;
+  playerData.movementState = { kind: "normal" };
+  playerData.dashReadyAtSeconds = nowSeconds;
+  playerData.heldItems = [];
+  playerData.activeMoveIntervalSeconds = getPlayerMoveIntervalSeconds(
+    playerData.shurui,
+    0,
+  );
+};
+
+export const gameInitializer = (
+  playerData: PlayerData,
+  input?: PlayerInputState,
+  nowMilliseconds = performance.now(),
+) => {
+  const nowSeconds = nowMilliseconds / 1000;
+  stageReset(nowSeconds);
+  resetPlayerPosition(playerData, nowSeconds);
+  playerData.forward = "ArrowRight";
   playerData.nouhin = 0;
-
-  for (let i = 0; i < ghostDatas.length; i += 1) {
-    ghostDatas[i].gx = 5;
-    ghostDatas[i].gy = 5;
-    ghostDatas[i].gtargetX = 5;
-    ghostDatas[i].gtargetY = 5;
-    ghostDatas[i].gpreX = 5;
-    ghostDatas[i].gpreY = 5;
+  if (input) {
+    input.direction = "None";
+    input.queuedForce = null;
   }
-  stageReset();
-  settings.start = performance.now();
+
+  settings.start = nowMilliseconds;
 };

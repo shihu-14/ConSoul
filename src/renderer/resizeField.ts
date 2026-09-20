@@ -9,7 +9,10 @@ const restoreField = (ctx: CanvasRenderingContext2D) => {
   ctx.restore();
 };
 
-export const resizeField = (ctx: CanvasRenderingContext2D, drawFunc: () => void) => {
+export const resizeField = (
+  ctx: CanvasRenderingContext2D,
+  drawFunc: () => void,
+) => {
   saveField(ctx);
   drawFunc();
   restoreField(ctx);

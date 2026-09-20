@@ -1,12 +1,12 @@
-import floorSrc from './img/floor.png';
-import gameoverSrc from './img/gameover.png';
-import ghostSrc from './img/ghost.png';
-import heartAnimationSrc from './img/heart_animation.png';
-import playerSrc from './img/player.png';
-import resultSrc from './img/result.png';
-import titleSrc from './img/title.png';
-import wallSrc from './img/wall.png';
-import itemSrc from './img/item.png';
+import floorSrc from "./img/floor.png";
+import gameoverSrc from "./img/gameover.png";
+import ghostSrc from "./img/ghost.png";
+import heartAnimationSrc from "./img/heart_animation.png";
+import playerSrc from "./img/player.png";
+import resultSrc from "./img/result.png";
+import titleSrc from "./img/title.png";
+import wallSrc from "./img/wall.png";
+import itemSrc from "./img/item.png";
 
 const getImageObject = (src: string) => {
   const img = new Image();
