@@ -36,11 +36,11 @@ const drawStageProgress = (
   context.save();
   context.fillStyle = "#ffffff";
   context.font = "bold 26px sans-serif";
-  context.textAlign = "right";
+  context.textAlign = "left";
   context.textBaseline = "alphabetic";
   context.fillText(
     `STAGE ${game.stageIndex + 1} / ${getStageCount()}`,
-    HUD_X + HUD_WIDTH - PANEL_PADDING,
+    HUD_X + PANEL_PADDING,
     40,
   );
   context.restore();
@@ -66,14 +66,6 @@ const drawInventory = (
     game.stage.remainingItems.length +
     game.player.heldItems.length +
     game.stage.deliveredItems.length;
-  context.fillStyle = "#e5ab27";
-  context.font = "bold 20px sans-serif";
-  context.textAlign = "right";
-  context.fillText(
-    `${game.player.heldItems.length} / ${slotCount}`,
-    HUD_X + HUD_WIDTH - PANEL_PADDING,
-    INVENTORY_Y + 34,
-  );
   const slotGap = 10;
   const slotSize = Math.min(
     58,
