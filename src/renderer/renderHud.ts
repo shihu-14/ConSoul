@@ -35,13 +35,13 @@ const drawStageProgress = (
 ): void => {
   context.save();
   context.fillStyle = "#ffffff";
-  context.font = "bold 26px sans-serif";
+  context.font = "bold 30px sans-serif";
   context.textAlign = "left";
   context.textBaseline = "alphabetic";
   context.fillText(
     `STAGE ${game.stageIndex + 1} / ${getStageCount()}`,
     HUD_X + PANEL_PADDING,
-    40,
+    50,
   );
   context.restore();
 };
@@ -61,7 +61,7 @@ const drawInventory = (
   context.font = "bold 24px sans-serif";
   context.textAlign = "left";
   context.textBaseline = "alphabetic";
-  context.fillText("所持中のアイテム", HUD_X + PANEL_PADDING, INVENTORY_Y + 34);
+  context.fillText("所持中のアイテム", HUD_X + PANEL_PADDING, INVENTORY_Y + 20);
   const slotCount =
     game.stage.remainingItems.length +
     game.player.heldItems.length +
@@ -109,7 +109,7 @@ const drawControls = (context: CanvasRenderingContext2D): void => {
   context.fillRect(HUD_X, PANEL_Y, HUD_WIDTH, PANEL_HEIGHT);
   context.fillStyle = "#ffffff";
   context.textBaseline = "alphabetic";
-  context.font = "bold 22px sans-serif";
+  context.font = "bold 24px sans-serif";
   context.fillText("操作方法", HUD_X + PANEL_PADDING, PANEL_Y + 53);
   const centerX = HUD_X + HUD_WIDTH / 2;
   const movementCenterX = centerX - 28;

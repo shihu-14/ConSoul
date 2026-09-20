@@ -34,12 +34,12 @@ export const stageSources = [
   {
     grid: `
 ####################
-#..................#
-#.BBBBBBB..BBBBBBB.#
+#..............B...#
+#.BBBBBBB.BBBB..B..#
 #.B..............B.#
-#.B.BBBBBBBBB.BB.B.#
-#.B.B..........B.B.#
-#...B.BB.BBBBB.B...#
+#.B.BBBBBBBBB.BB..B#
+#.B.B..........B...#
+#...B.BB.BBBBB.B.B.#
 #.B.B.B......B.B.B.#
 #.B...B.BB.B...B.B.#
 #.B.B.B.B..B.B.B.B.#
@@ -50,7 +50,7 @@ export const stageSources = [
 #...B..........B.B.#
 #B..BB.BBBBBBBBB.B.#
 #.B..............B.#
-#..B..BBB..BBBBBBB.#
+#..B..BBBB.BBBBBBB.#
 #...B..............#
 ####################
 `.replace(/\n/g, ""),
@@ -106,40 +106,40 @@ export const stageSources = [
         ],
       },
       { type: "random", position: [1, 1] },
-      { type: "chase", position: [18, 18], chaseProbability: 0.55 },
+      { type: "chase", position: [18, 18], chaseProbability: 0.75 },
     ],
   },
   {
     grid: `
 ####################
 #.......B..........#
-#.BBBB...B..BBBB...#
-#.BBBB....B....BB..#
-#.BBBB.....B....B..#
-#......BBB..B...B..#
-#.....BBBBB..B..B..#
-#BBB..........B....#
-#B..BBB.....B..B...#
+#.BBBB...B..BBBBB..#
+#.BBBB....B......B.#
+#.BBBB.....B..BB.B.#
+#......BBB..B..B.B.#
+#B....BBBBB..B...B.#
+#BBB..........B..B.#
+#B..BBB....BBB.B...#
 #.B....BBB......B..#
 #..B......BBB....B.#
-#...B..B.....BBB..B#
+#...B..BB....BBB..B#
 #.B..B...BB.....BBB#
-#.B...B....B.BBB...#
+#.B...B....BBBB...B#
 #.BB...B...B.......#
 #..BB...B..B.BBBBB.#
 #...BB...B.......B.#
-#....BB...B..BB..B.#
-#..........B.......#
+#B...BB...B..BBB.B.#
+#BB........B.......#
 ####################
 `.replace(/\n/g, ""),
     items: [
       [1, 1],
-      [17, 3],
-      [3, 17],
+      [17, 2],
+      [2, 17],
       [18, 18],
     ],
-    post: [8, 7],
-    playerStart: [6, 7],
+    post: [8, 4],
+    playerStart: [8, 7],
     enemies: [
       {
         type: "patrol",
@@ -166,28 +166,28 @@ export const stageSources = [
         ],
       },
       { type: "random", position: [17, 18] },
-      { type: "chase", position: [1, 18], chaseProbability: 0.82 },
+      { type: "chase", position: [3, 18], chaseProbability: 0.9 },
       { type: "rush", position: [18, 1] },
     ],
   },
   {
     grid: `
 ####################
-#.B........BB.B....#
-#.B.BBB.BB....B.BBB#
+#.B........BB......#
+#.B.BBB.BB.BB..BBBB#
 #.B.B...BB.BB......#
 #.B.B.B.BB.BB.BBBB.#
 #...B...B........B.#
-#BB.BBB...B.BB.B...#
-#.....BBBBB.BB.BBBB#
+#BB.B.B...B.BB.B...#
+#.....BBBBB.BB.BBB.#
 #.BBB.....B.B......#
-#.....BBB...BBB.BB.#
-#BBBB..B...BBBB.BB.#
-#......B.B......BB.#
-#.BBBB.B.BBBBB.....#
-#...BB.B.B...B.B.BB#
-#.B......B.B.B.B...#
-#.BBBB.B.......B.B.#
+#B....BBB......BBB.#
+#BBBBBBBBBBBBBBBBBB#
+#........B.....B...#
+#.BBBB.B.B.BBB...B.#
+#...BB.B.B...B.B...#
+#.B......B.B.B.B.BB#
+#.BBBB.........B...#
 #......BBBBBBB.B.B.#
 #BBB.B.B....BB.B.B.#
 #....B...BB......B.#
@@ -199,34 +199,11 @@ export const stageSources = [
       [1, 18],
       [18, 18],
     ],
-    post: [10, 9],
-    playerStart: [10, 10],
+    post: [9, 15],
+    playerStart: [8, 14],
     enemies: [
-      {
-        type: "patrol",
-        position: [7, 1],
-        route: [
-          [7, 1],
-          [8, 1],
-          [9, 1],
-          [10, 1],
-          [10, 2],
-          [10, 3],
-          [10, 4],
-          [10, 5],
-          [9, 5],
-          [9, 6],
-          [8, 6],
-          [7, 6],
-          [7, 5],
-          [7, 4],
-          [7, 3],
-          [7, 2],
-        ],
-      },
-      { type: "random", position: [1, 18] },
-      { type: "chase", position: [16, 18], chaseProbability: 0.82 },
-      { type: "chase", position: [13, 5], chaseProbability: 0.96 },
+      { type: "chase", position: [18, 18], chaseProbability: 0.99 },
+      { type: "chase", position: [13, 5], chaseProbability: 0.99 },
       { type: "rush", position: [16, 1] },
     ],
   },
