@@ -147,7 +147,6 @@ const tick = (timestampMilliseconds: number) => {
         context,
         tutorial.overlay,
         nowSeconds,
-        tutorial.resetHintStartedAtSeconds,
         tutorial.guidance,
         tutorial.pushHintVisible,
       );
