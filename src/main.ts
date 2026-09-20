@@ -3,16 +3,25 @@ import {
   getCurrentBlocks,
   getCurrentGhosts,
   getCurrentMap,
+  completeStageTransition,
+  getStageTransition,
 } from "./controller/stageController";
 import { PlayerData } from "./data/playerData";
-import { createPlayerInputState } from "./game/playerAction";
+import {
+  createPlayerInputState,
+  resetPlayerInputState,
+} from "./game/playerAction";
 import {
   createMovementEffectState,
   emitMovementEffect,
   getGhostMovementEffectKind,
   pruneMovementEffects,
 } from "./game/movementEffect";
-import { gameInitializer } from "./initializer/gameInitializer";
+import {
+  gameInitializer,
+  resetPlayerPosition,
+  retryCurrentStage,
+} from "./initializer/gameInitializer";
 import { playerInitializer } from "./initializer/playerInitializer";
 import {
   result2KeydownEvent,
@@ -27,14 +36,18 @@ import { mapRender } from "./renderer/mapRender";
 import { playerRender } from "./renderer/playerRender";
 import { resizeField } from "./renderer/resizeField";
 import { blockRender } from "./renderer/blockRender";
-import { hudRailRender } from "./renderer/hudRailRender";
 import { movementEffectRender } from "./renderer/movementEffectRender";
+import { updateBlockPositions } from "./game/blockLogic";
+import { stageTransitionRender } from "./renderer/stageTransitionRender";
 import {
   result2Rrendering,
   resultRendering,
   titleRendering,
 } from "./renderer/screenRenderer";
 import { settings } from "./settings";
+import { playerEnergyBalance } from "./config/gameBalance";
+import { playerEnergyRender } from "./renderer/playerEnergyRender";
+import { controlsRender } from "./renderer/controlsRender";
 
 const Hackathon = () => {
   const canvas = document.getElementById("cnv") as HTMLCanvasElement;
@@ -54,6 +67,8 @@ const Hackathon = () => {
     start: 0,
     activeMoveIntervalSeconds: 0,
     movementState: { kind: "normal" },
+    energy: playerEnergyBalance.maximumEnergy,
+    energyUpdatedAtSeconds: 0,
     heldItems: [],
     nouhin: 0,
     shurui: "student",
@@ -66,6 +81,24 @@ const Hackathon = () => {
   titleKeydownEvent(playerData);
   resultKeydownEvent();
   result2KeydownEvent();
+
+  const renderGameScene = (nowSeconds: number) => {
+    const renderMap = getCurrentMap();
+    const renderGhosts = getCurrentGhosts();
+    const renderBlocks = getCurrentBlocks();
+    resizeField(ctx, () => {
+      mapRender(renderMap, ctx);
+      blockRender(renderBlocks, renderMap, ctx);
+      movementEffectRender(movementEffects, renderMap, ctx, nowSeconds);
+      playerRender(playerData, renderMap, ctx);
+      playerEnergyRender(playerData, renderMap, ctx);
+      renderGhosts.forEach((ghost) => {
+        ghostRender(ghost, renderMap, ctx, nowSeconds);
+      });
+    });
+    inventoryRender(playerData, ctx);
+    controlsRender(ctx);
+  };
 
   const tick = () => {
     requestAnimationFrame(tick);
@@ -82,11 +115,20 @@ const Hackathon = () => {
           gameInitializer(playerData, playerInput, nowSeconds * 1000);
           movementEffects.particles = [];
         }
+        if (playerInput.retryRequested) {
+          retryCurrentStage(
+            playerData,
+            playerInput,
+            movementEffects,
+            nowSeconds,
+          );
+        }
         pruneMovementEffects(movementEffects, nowSeconds);
 
         const currentMap = getCurrentMap();
         const currentGhosts = getCurrentGhosts();
         const currentBlocks = getCurrentBlocks();
+        updateBlockPositions(currentBlocks, nowSeconds);
         currentGhosts.forEach((ghost) => {
           const previousTargetX = ghost.gtargetX;
           const previousTargetY = ghost.gtargetY;
@@ -125,7 +167,8 @@ const Hackathon = () => {
         if (getCurrentMap() !== currentMap) {
           movementEffects.particles = [];
         } else if (
-          (playerWasDashing || playerData.movementState.kind === "dashing") &&
+          !playerWasDashing &&
+          playerData.movementState.kind === "dashing" &&
           (playerData.targetX !== previousPlayerTargetX ||
             playerData.targetY !== previousPlayerTargetY)
         ) {
@@ -140,20 +183,21 @@ const Hackathon = () => {
           );
         }
 
-        const renderMap = getCurrentMap();
-        const renderGhosts = getCurrentGhosts();
-        const renderBlocks = getCurrentBlocks();
-        hudRailRender(ctx);
-        resizeField(ctx, () => {
-          mapRender(renderMap, ctx);
-          blockRender(renderBlocks, renderMap, ctx);
-          movementEffectRender(movementEffects, renderMap, ctx, nowSeconds);
-          playerRender(playerData, renderMap, ctx);
-          renderGhosts.forEach((ghost) => {
-            ghostRender(ghost, renderMap, ctx);
-          });
-        });
-        inventoryRender(playerData, ctx);
+        renderGameScene(nowSeconds);
+        const transition = getStageTransition();
+        if (transition) stageTransitionRender(transition, ctx);
+        break;
+      }
+      case "stageTransition": {
+        const nowSeconds = performance.now() / 1000;
+        if (completeStageTransition(nowSeconds)) {
+          resetPlayerPosition(playerData, nowSeconds);
+          resetPlayerInputState(playerInput);
+          movementEffects.particles = [];
+        }
+        renderGameScene(nowSeconds);
+        const transition = getStageTransition();
+        if (transition) stageTransitionRender(transition, ctx);
         break;
       }
       case "result":

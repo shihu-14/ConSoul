@@ -9,15 +9,15 @@ export const blockRender = (
 ) => {
   const cellWidth = ctx.canvas.width / map.width;
   const cellHeight = ctx.canvas.height / map.height;
-  blocks.forEach(({ x, y }) => {
+  blocks.forEach(({ x, y, renderX = x, renderY = y }) => {
     ctx.drawImage(
       getImage("wall"),
       0,
       0,
       64,
       64,
-      x * cellWidth,
-      y * cellHeight,
+      renderX * cellWidth,
+      renderY * cellHeight,
       cellWidth,
       cellHeight,
     );

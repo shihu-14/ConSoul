@@ -3,14 +3,14 @@ import { CardinalPlayerDirection, PlayerDirection } from "../data/playerData";
 
 export const createPlayerInputState = (): PlayerInputState => ({
   direction: "None",
-  spaceHeld: false,
   queuedForce: null,
+  retryRequested: false,
 });
 
 export const resetPlayerInputState = (input: PlayerInputState) => {
   input.direction = "None";
-  input.spaceHeld = false;
   input.queuedForce = null;
+  input.retryRequested = false;
 };
 
 export const isCardinalPlayerDirection = (
@@ -38,46 +38,19 @@ export const queueForceIntent = (
   input: PlayerInputState,
   forward: CardinalPlayerDirection,
   isRepeat: boolean,
+  canQueue = true,
 ) => {
-  if (isRepeat || input.queuedForce) return false;
-  input.spaceHeld = true;
+  if (isRepeat || !canQueue || input.queuedForce) return false;
   input.queuedForce = {
-    kind: "grip",
-    blockDirection: isCardinalPlayerDirection(input.direction)
+    direction: isCardinalPlayerDirection(input.direction)
       ? input.direction
       : forward,
   };
   return true;
 };
 
-const isOppositeDirection = (
-  first: CardinalPlayerDirection,
-  second: CardinalPlayerDirection,
-) => {
-  const [firstX, firstY] = getPlayerDirectionDelta(first);
-  const [secondX, secondY] = getPlayerDirectionDelta(second);
-  return firstX + secondX === 0 && firstY + secondY === 0;
-};
-
-export const queuePullIntent = (
-  input: PlayerInputState,
-  retreatDirection: CardinalPlayerDirection,
-) => {
-  if (
-    !input.spaceHeld ||
-    input.queuedForce?.kind !== "grip" ||
-    !isOppositeDirection(input.queuedForce.blockDirection, retreatDirection)
-  ) {
-    return false;
-  }
-  input.queuedForce = {
-    kind: "pull",
-    blockDirection: input.queuedForce.blockDirection,
-    retreatDirection,
-  };
+export const queueStageRetry = (input: PlayerInputState, isRepeat: boolean) => {
+  if (isRepeat || input.retryRequested) return false;
+  input.retryRequested = true;
   return true;
-};
-
-export const releaseForce = (input: PlayerInputState) => {
-  input.spaceHeld = false;
 };

@@ -1,9 +1,17 @@
-import { getCurrentMap, stageReset } from "../controller/stageController";
+import {
+  getCurrentMap,
+  resetCurrentStage,
+  stageReset,
+} from "../controller/stageController";
 import { PlayerData } from "../data/playerData";
 import { settings } from "../settings";
-import { getPlayerMoveIntervalSeconds } from "../config/gameBalance";
+import {
+  getPlayerMoveIntervalSeconds,
+  playerEnergyBalance,
+} from "../config/gameBalance";
 import { PlayerInputState } from "../data/playerInput";
 import { resetPlayerInputState } from "../game/playerAction";
+import { MovementEffectState } from "../data/movementEffect";
 
 export const resetPlayerPosition = (
   playerData: PlayerData,
@@ -18,6 +26,8 @@ export const resetPlayerPosition = (
   playerData.preY = startY;
   playerData.start = nowSeconds;
   playerData.movementState = { kind: "normal" };
+  playerData.energy = playerEnergyBalance.maximumEnergy;
+  playerData.energyUpdatedAtSeconds = nowSeconds;
   playerData.heldItems = [];
   playerData.activeMoveIntervalSeconds = getPlayerMoveIntervalSeconds(
     playerData.shurui,
@@ -38,4 +48,17 @@ export const gameInitializer = (
   if (input) resetPlayerInputState(input);
 
   settings.start = nowMilliseconds;
+};
+
+export const retryCurrentStage = (
+  playerData: PlayerData,
+  input: PlayerInputState,
+  movementEffects: MovementEffectState,
+  nowSeconds = performance.now() / 1000,
+) => {
+  resetCurrentStage(nowSeconds);
+  resetPlayerPosition(playerData, nowSeconds);
+  playerData.nouhin = 0;
+  resetPlayerInputState(input);
+  movementEffects.particles = [];
 };

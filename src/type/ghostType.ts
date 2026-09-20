@@ -9,6 +9,7 @@ import {
   hasBlockAt,
   isOpenCell,
 } from "../game/occupancy";
+import { isWithinDetectionRange } from "../game/detection";
 
 interface DirectionStep {
   readonly direction: Exclude<GhostDirection, "gNone">;
@@ -250,6 +251,21 @@ const chooseChargeBehavior = (
     return;
   }
 
+  const detectionRange = playerBalance[player.shurui].detectionRangeTiles;
+  if (
+    !isWithinDetectionRange(
+      ghost.gtargetX,
+      ghost.gtargetY,
+      player.preX,
+      player.preY,
+      detectionRange,
+    )
+  ) {
+    ghost.state = { kind: "normal" };
+    ghost.gdirect = chooseRandomDirection(ghost, map, random, blocks);
+    return;
+  }
+
   const lineOfSightDirection = getLineOfSightDirection(
     ghost,
     player,
@@ -289,9 +305,13 @@ export const ghostType = (
   }
 
   const detectionRange = playerBalance[player.shurui].detectionRangeTiles;
-  const dx = ghost.gtargetX - player.preX;
-  const dy = ghost.gtargetY - player.preY;
-  const playerDetected = dx * dx + dy * dy <= detectionRange * detectionRange;
+  const playerDetected = isWithinDetectionRange(
+    ghost.gtargetX,
+    ghost.gtargetY,
+    player.preX,
+    player.preY,
+    detectionRange,
+  );
 
   if (ghost.balance.type === "chase" && playerDetected) {
     if (ghost.state.kind === "normal") {

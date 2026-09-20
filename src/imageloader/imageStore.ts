@@ -7,6 +7,16 @@ import resultSrc from "./img/result.png";
 import titleSrc from "./img/title.png";
 import wallSrc from "./img/wall.png";
 import itemSrc from "./img/item.png";
+import keyArrowUpSrc from "./img/input-prompts/arrow-up.png";
+import keyArrowDownSrc from "./img/input-prompts/arrow-down.png";
+import keyArrowLeftSrc from "./img/input-prompts/arrow-left.png";
+import keyArrowRightSrc from "./img/input-prompts/arrow-right.png";
+import keyWSrc from "./img/input-prompts/key-w.png";
+import keyASrc from "./img/input-prompts/key-a.png";
+import keySSrc from "./img/input-prompts/key-s.png";
+import keyDSrc from "./img/input-prompts/key-d.png";
+import keySpaceSrc from "./img/input-prompts/key-space.png";
+import keyRSrc from "./img/input-prompts/key-r.png";
 
 const getImageObject = (src: string) => {
   const img = new Image();
@@ -24,6 +34,16 @@ const images: Record<string, HTMLImageElement> = {
   title: getImageObject(titleSrc),
   wall: getImageObject(wallSrc),
   item: getImageObject(itemSrc),
+  keyArrowUp: getImageObject(keyArrowUpSrc),
+  keyArrowDown: getImageObject(keyArrowDownSrc),
+  keyArrowLeft: getImageObject(keyArrowLeftSrc),
+  keyArrowRight: getImageObject(keyArrowRightSrc),
+  keyW: getImageObject(keyWSrc),
+  keyA: getImageObject(keyASrc),
+  keyS: getImageObject(keySSrc),
+  keyD: getImageObject(keyDSrc),
+  keySpace: getImageObject(keySpaceSrc),
+  keyR: getImageObject(keyRSrc),
 };
 
 export const getImage = (id: string) => images[id];

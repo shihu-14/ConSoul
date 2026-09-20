@@ -8,13 +8,26 @@ const blockPositionKey = (x: number, y: number) => `${x},${y}`;
 
 export const createBlockPositionSet = (blocks: BlockOccupancy): Set<string> => {
   if (blocks instanceof Set) return blocks;
-  return new Set(blocks.map(({ x, y }) => blockPositionKey(x, y)));
+  const positions = new Set<string>();
+  blocks.forEach((block) => {
+    positions.add(blockPositionKey(block.x, block.y));
+    if (block.movement) {
+      positions.add(
+        blockPositionKey(block.movement.fromX, block.movement.fromY),
+      );
+    }
+  });
+  return positions;
 };
 
 export const hasBlockAt = (blocks: BlockOccupancy, x: number, y: number) =>
   blocks instanceof Set
     ? blocks.has(blockPositionKey(x, y))
-    : blocks.some((block) => block.x === x && block.y === y);
+    : blocks.some(
+        (block) =>
+          (block.x === x && block.y === y) ||
+          (block.movement?.fromX === x && block.movement.fromY === y),
+      );
 
 export const isTerrainWalkable = isWalkable;
 

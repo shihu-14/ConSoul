@@ -3,9 +3,13 @@ import { MapData } from "../data/mapData";
 import { PlayerData } from "../data/playerData";
 import { ghostType } from "../type/ghostType";
 import { isWalkable } from "../game/map";
-import { enemyBehaviorBalance } from "../config/gameBalance";
+import {
+  enemyBehaviorBalance,
+  getChaseMoveIntervalSeconds,
+} from "../config/gameBalance";
 import { BlockData } from "../data/blockData";
 import { createBlockPositionSet, isOpenCell } from "../game/occupancy";
+import { settings } from "../settings";
 
 export const checkCollisionWall = (gx: number, gy: number, mapData: MapData) =>
   isWalkable(mapData, gx, gy);
@@ -17,6 +21,7 @@ export const ghostMover = (
   nowSeconds = performance.now() / 1000,
   blocks: readonly BlockData[] = [],
 ) => {
+  if (settings.mode === "stageTransition") return;
   const occupiedBlocks = createBlockPositionSet(blocks);
   const { activeMoveIntervalSeconds } = ghostData;
   if (nowSeconds - ghostData.gstart < activeMoveIntervalSeconds) {
@@ -32,7 +37,6 @@ export const ghostMover = (
     ghostData.gx = ghostData.gtargetX;
     ghostData.gy = ghostData.gtargetY;
     ghostType(ghostData, playerData, mapData, Math.random, occupiedBlocks);
-    let speedMultiplier = 1;
     if (ghostData.state.kind === "alertingChase") {
       ghostData.activeMoveIntervalSeconds =
         enemyBehaviorBalance.chaseAlertDurationSeconds;
@@ -42,14 +46,15 @@ export const ghostMover = (
     } else if (ghostData.state.kind === "stunned") {
       ghostData.activeMoveIntervalSeconds =
         enemyBehaviorBalance.chargeBlockStunDurationSeconds;
-    } else {
-      if (ghostData.state.kind === "charging") {
-        speedMultiplier = enemyBehaviorBalance.chargeSpeedMultiplier;
-      } else if (ghostData.state.kind === "chasing") {
-        speedMultiplier = enemyBehaviorBalance.chaseSpeedMultiplier;
-      }
+    } else if (ghostData.state.kind === "charging") {
       ghostData.activeMoveIntervalSeconds =
-        ghostData.balance.moveIntervalSeconds * speedMultiplier;
+        ghostData.balance.moveIntervalSeconds *
+        enemyBehaviorBalance.chargeSpeedMultiplier;
+    } else if (ghostData.state.kind === "chasing") {
+      ghostData.activeMoveIntervalSeconds = getChaseMoveIntervalSeconds();
+    } else {
+      ghostData.activeMoveIntervalSeconds =
+        ghostData.balance.moveIntervalSeconds;
     }
     ghostData.gstart = nowSeconds;
     ghostData.gpreX = ghostData.gtargetX;
