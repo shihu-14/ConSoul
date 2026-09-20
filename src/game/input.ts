@@ -6,6 +6,10 @@ import { CharacterType, Direction } from "./types";
 
 const pressedDirections: Direction[] = [];
 
+/**
+ * キー名をゲーム内の移動方向へ変換する．
+ * ArrowキーとWASDを同じ方向へ割り当て，対応しないキーはnullを返す．
+ */
 const getDirectionForKey = (key: string): Direction | null => {
   switch (key.toLowerCase()) {
     case "arrowup":
@@ -25,6 +29,10 @@ const getDirectionForKey = (key: string): Direction | null => {
   }
 };
 
+/**
+ * 数字キーをキャラクター種別へ変換する．
+ * 1をStudent，2をExorcist，3をMonkへ割り当て，対応しないキーはnullを返す．
+ */
 const getCharacterForKey = (key: string): CharacterType | null => {
   switch (key) {
     case "1":
@@ -38,8 +46,16 @@ const getCharacterForKey = (key: string): CharacterType | null => {
   }
 };
 
+/**
+ * 現在押下中の移動方向を返す．
+ * 複数方向が押されている場合は，最後に押された方向を優先する．
+ */
 export const getMoveDirection = () => pressedDirections.at(-1) ?? null;
 
+/**
+ * 保持している移動キー状態をすべて解除する．
+ * ステージ開始，リトライ，タイトル復帰時にキー状態が次の状態へ漏れないようにする．
+ */
 export const resetInput = () => {
   pressedDirections.splice(0, pressedDirections.length);
 };
@@ -62,6 +78,10 @@ export const registerInput = (
     ) => void;
   } = window,
 ) => {
+  /**
+   * KeyDownを移動キー，Action，リトライ，結果共有，キャラクター選択へ振り分ける．
+   * 移動キーは押下順を保持し，repeat付きの単発操作は二重実行しない．
+   */
   const handleKeyDown = (event: KeyboardEvent) => {
     const direction = getDirectionForKey(event.key);
     if (direction) {
@@ -87,6 +107,9 @@ export const registerInput = (
     if (characterType) handlers.onSelectCharacter?.(characterType);
   };
 
+  /**
+   * KeyUpされた移動方向だけを押下状態から削除する．
+   */
   const handleKeyUp = (event: KeyboardEvent) => {
     const direction = getDirectionForKey(event.key);
     if (!direction) return;
@@ -96,6 +119,7 @@ export const registerInput = (
 
   target.addEventListener("keydown", handleKeyDown);
   target.addEventListener("keyup", handleKeyUp);
+  // 登録したイベントだけを解除し，入力状態も同時に初期化する解除関数を返す．
   return () => {
     target.removeEventListener("keydown", handleKeyDown);
     target.removeEventListener("keyup", handleKeyUp);

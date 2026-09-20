@@ -11,11 +11,11 @@ import {
 } from "./grid";
 import { BlockState, Direction, Position, StageState } from "./types";
 
-const EPSILON = 1e-8;
+const EPS = 1e-8;
 
 /** PlayerまたはBlockの指定方向に接しているBlockを返す． */
 export const findTouchingBlock = (
-  position: Position,
+  position: Readonly<Position>,
   blocks: readonly BlockState[],
   direction: Direction,
   excluded: ReadonlySet<BlockState> = new Set(),
@@ -29,7 +29,7 @@ export const findTouchingBlock = (
 /** 連鎖末尾の移動先が他の盤面要素に占有されていないか確認する． */
 const canOccupyPushDestination = (
   stage: StageState,
-  destination: Position,
+  destination: Readonly<Position>,
   chain: ReadonlySet<BlockState>,
 ) => {
   if (
@@ -104,10 +104,22 @@ export const tryStartPush = (
   };
   if (!canOccupyPushDestination(stage, destination, chainSet)) return false;
 
+  const durationSeconds = gameConfig.action.blockPushDurationSeconds;
   chain.forEach((block) => {
-    block.movement = { direction, elapsedDistance: 0 };
+    block.movement = { direction, elapsedDistance: 0, durationSeconds };
   });
   return true;
+};
+
+/**
+ * 現在開始されたPushの実モーション時間を取得する．成功したPushでは移動中Blockが必ず存在する．
+ */
+export const getActiveBlockPushDurationSeconds = (stage: StageState) => {
+  const movingBlock = stage.blocks.find((block) => block.movement !== null);
+  if (!movingBlock?.movement) {
+    throw new Error("Push中のBlockが存在しない。");
+  }
+  return movingBlock.movement.durationSeconds;
 };
 
 /** Push中のBlockを進め，1セル到達時に整数座標へ確定する． */
@@ -117,9 +129,9 @@ export const updateBlocks = (stage: StageState, deltaSeconds: number) => {
     block.movement.elapsedDistance = Math.min(
       1,
       block.movement.elapsedDistance +
-        Math.max(0, deltaSeconds) / gameConfig.action.blockPushDurationSeconds,
+        Math.max(0, deltaSeconds) / block.movement.durationSeconds,
     );
-    if (block.movement.elapsedDistance + EPSILON < 1) return;
+    if (block.movement.elapsedDistance + EPS < 1) return;
     block.position = getNextPosition(block.position, block.movement.direction);
     block.movement = null;
   });

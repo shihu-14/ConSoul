@@ -16,14 +16,60 @@ const steps: ReadonlyArray<{
   { direction: "right", x: 1, y: 0 },
 ];
 
+/** Blockを避けて開始マスから目的地までの最短経路を1本返す。 */
+export const findShortestPath = (
+  stage: StageState,
+  start: Readonly<Position>,
+  target: Readonly<Position>,
+): Position[] => {
+  const keyOf = ({ x, y }: Readonly<Position>) => `${x},${y}`;
+  const blocked = getBlockedCellKeys(stage);
+  const startKey = keyOf(start);
+  const targetKey = keyOf(target);
+  if (blocked.has(startKey) || blocked.has(targetKey)) return [];
+
+  const previous = new Map<string, Position | null>([[startKey, null]]);
+  const queue: Position[] = [{ ...start }];
+  for (let index = 0; index < queue.length; index += 1) {
+    const current = queue[index];
+    if (keyOf(current) === targetKey) break;
+    steps.forEach((step) => {
+      const next = { x: current.x + step.x, y: current.y + step.y };
+      const key = keyOf(next);
+      if (
+        next.x < 0 ||
+        next.y < 0 ||
+        next.x >= stage.width ||
+        next.y >= stage.height ||
+        blocked.has(key) ||
+        previous.has(key)
+      )
+        return;
+      previous.set(key, current);
+      queue.push(next);
+    });
+  }
+  if (!previous.has(targetKey)) return [];
+
+  const path: Position[] = [{ ...target }];
+  let current = path[0];
+  while (keyOf(current) !== startKey) {
+    const parent = previous.get(keyOf(current));
+    if (!parent) throw new Error("経路の親マスが存在しない。");
+    path.push(parent);
+    current = parent;
+  }
+  return path.reverse();
+};
+
 /**
  * 目的地から逆向きにBFSを行い，開始地点から最短となる初動方向をすべて返す．
  * 盤面外，Blockの起点，移動中Blockの導出先を探索対象から除外し，同距離の方向は順序を保って返す．
  */
 export const findShortestDirections = (
   stage: StageState,
-  startPosition: Position,
-  destinationPosition: Position,
+  startPosition: Readonly<Position>,
+  destinationPosition: Readonly<Position>,
 ): Direction[] => {
   const start = startPosition;
   const target = destinationPosition;
@@ -35,6 +81,7 @@ export const findShortestDirections = (
   const queue = [{ x: target.x, y: target.y }];
   let head = 0;
   while (head < queue.length) {
+    // queueの先頭から距離順にセルを取り出し，未訪問の隣接セルへ距離を記録する．
     const current = queue[head];
     head += 1;
     const currentDistance = distances.get(`${current.x},${current.y}`);

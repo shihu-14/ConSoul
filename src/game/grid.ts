@@ -4,7 +4,7 @@
 
 import { BlockState, Direction, Position, StageState } from "./types";
 
-const COLLISION_EPSILON = 1e-9;
+const EPS = 1e-8;
 
 /**
  * BlockがStageの外周にあるかを座標から判定する．
@@ -37,38 +37,40 @@ export const getDirectionVector = (direction: Direction): Position => {
 /**
  * 2つのPositionが同じセルを指しているか比較する．
  */
-export const positionsEqual = (first: Position, second: Position) =>
-  first.x === second.x && first.y === second.y;
+export const positionsEqual = (
+  first: Readonly<Position>,
+  second: Readonly<Position>,
+) => first.x === second.x && first.y === second.y;
 
 /**
  * 指定方向へ1セル進んだ整数セル座標を返す．
- * 元のPositionは変更せず，方向ベクトルを加えた新しいPositionを作成する．
+ * 元のlogicalPositionは変更せず，方向ベクトルを加えた新しいPositionを作成する．
  */
 export const getNextPosition = (
-  position: Position,
+  logicalPosition: Readonly<Position>,
   direction: Direction,
 ): Position => {
   const vector = getDirectionVector(direction);
   return {
-    x: position.x + vector.x,
-    y: position.y + vector.y,
+    x: logicalPosition.x + vector.x,
+    y: logicalPosition.y + vector.y,
   };
 };
 
 /**
  * 論理セル座標と移動進捗から描画用座標を導出する．
- * positionは整数セルのまま保持し，現在セル内のelapsedDistanceを方向へ加えて補間表示する．
+ * logicalPositionは整数セルのまま保持し，現在セル内のelapsedDistanceを方向へ加えてdisplayPositionを導出する．
  */
 export const getDisplayPosition = (
-  position: Position,
+  logicalPosition: Readonly<Position>,
   direction: Direction | null,
   elapsedDistance: number,
 ): Position => {
-  if (!direction) return { ...position };
+  if (!direction) return { ...logicalPosition };
   const vector = getDirectionVector(direction);
   return {
-    x: position.x + vector.x * elapsedDistance,
-    y: position.y + vector.y * elapsedDistance,
+    x: logicalPosition.x + vector.x * elapsedDistance,
+    y: logicalPosition.y + vector.y * elapsedDistance,
   };
 };
 
@@ -76,22 +78,25 @@ export const getDisplayPosition = (
  * 指定セルが盤面内で移動可能かを判定する．
  * 盤面外，停止中Blockのセル，移動中Blockの起点と導出先をすべて壁として扱う．
  */
-export const isCellBlocked = (stage: StageState, position: Position) => {
+export const isCellBlocked = (
+  stage: StageState,
+  logicalPosition: Readonly<Position>,
+) => {
   if (
-    position.x < 0 ||
-    position.y < 0 ||
-    position.x >= stage.width ||
-    position.y >= stage.height
+    logicalPosition.x < 0 ||
+    logicalPosition.y < 0 ||
+    logicalPosition.x >= stage.width ||
+    logicalPosition.y >= stage.height
   ) {
     return true;
   }
   return stage.blocks.some(
     (block) =>
-      positionsEqual(block.position, position) ||
+      positionsEqual(block.position, logicalPosition) ||
       (block.movement !== null &&
         positionsEqual(
           getNextPosition(block.position, block.movement.direction),
-          position,
+          logicalPosition,
         )),
   );
 };
@@ -104,11 +109,13 @@ export const getBlockedCellKeys = (stage: StageState) => {
   stage.blocks.forEach((block) => {
     blocked.add(`${block.position.x},${block.position.y}`);
     if (block.movement) {
-      const destination = getNextPosition(
+      const destinationLogicalPosition = getNextPosition(
         block.position,
         block.movement.direction,
       );
-      blocked.add(`${destination.x},${destination.y}`);
+      blocked.add(
+        `${destinationLogicalPosition.x},${destinationLogicalPosition.y}`,
+      );
     }
   });
   return blocked;
@@ -118,8 +125,11 @@ export const getBlockedCellKeys = (stage: StageState) => {
  * 1セルの矩形同士が厳密に重なっているか判定する．
  * 辺が接触するだけの場合は重なりとみなさない．
  */
-export const rectanglesOverlap = (first: Position, second: Position) =>
-  first.x < second.x + 1 - COLLISION_EPSILON &&
-  second.x < first.x + 1 - COLLISION_EPSILON &&
-  first.y < second.y + 1 - COLLISION_EPSILON &&
-  second.y < first.y + 1 - COLLISION_EPSILON;
+export const rectanglesOverlap = (
+  firstDisplayPosition: Readonly<Position>,
+  secondDisplayPosition: Readonly<Position>,
+) =>
+  firstDisplayPosition.x < secondDisplayPosition.x + 1 - EPS &&
+  secondDisplayPosition.x < firstDisplayPosition.x + 1 - EPS &&
+  firstDisplayPosition.y < secondDisplayPosition.y + 1 - EPS &&
+  secondDisplayPosition.y < firstDisplayPosition.y + 1 - EPS;
