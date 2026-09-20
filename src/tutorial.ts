@@ -7,6 +7,8 @@ const DASH_HINT_RANGE_TILES = 4;
 const PUSH_TUTORIAL_BLOCKS = [
   { x: 2, y: 16 },
   { x: 3, y: 17 },
+  { x: 17, y: 3 },
+  { x: 16, y: 2 },
 ] as const;
 export type TutorialOverlay = { type: "dash"; startedAtSeconds: number } | null;
 export type TutorialGuidance = {
@@ -68,7 +70,7 @@ export const beginTutorial = (
   };
 };
 
-/** 成功したPushを記録し、Stage 1の対象Blockが動けば両方の案内を完了する。 */
+/** 成功したPushを記録し、Stage 1の対象Blockが動けば案内を完了する。 */
 export const observeTutorialPush = (
   tutorial: TutorialState,
   game: GameState,
