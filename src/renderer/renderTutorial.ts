@@ -1,4 +1,3 @@
-import { gameConfig } from "../game/config";
 import { getDisplayPosition } from "../game/grid";
 import { GameState } from "../game/types";
 import { TutorialGuidance, TutorialOverlay } from "../tutorial";
@@ -36,7 +35,6 @@ const drawGuidance = (
 const drawKeyHint = (
   game: GameState,
   context: CanvasRenderingContext2D,
-  key: "keySpace" | "keyR",
 ): void => {
   const cellSize = getCellSize(game);
   const { player } = game;
@@ -45,7 +43,7 @@ const drawKeyHint = (
     player.movement ? player.direction : null,
     player.movement?.elapsedDistance ?? 0,
   );
-  const iconSize = cellSize * 1.5 * (key === "keyR" ? 0.64 : 1);
+  const iconSize = cellSize * 1.5;
   const centerX = (displayPosition.x + 0.5) * cellSize;
   const iconX = Math.max(
     0,
@@ -57,7 +55,7 @@ const drawKeyHint = (
     displayPosition.y * cellSize - barHeight - cellSize * 0.08,
   );
   const iconY = Math.max(0, barY - iconSize);
-  context.drawImage(getImage(key), iconX, iconY, iconSize, iconSize);
+  context.drawImage(getImage("keySpace"), iconX, iconY, iconSize, iconSize);
 };
 
 /** ゲーム画面の上に一時的な案内を描画し、GameStateは変更しない。 */
@@ -66,25 +64,16 @@ export const renderTutorial = (
   context: CanvasRenderingContext2D,
   overlay: TutorialOverlay,
   nowSeconds: number,
-  resetHintStartedAtSeconds: number | null = null,
   guidance: TutorialGuidance = null,
   pushHintVisible = false,
 ): void => {
-  const showResetHint =
-    resetHintStartedAtSeconds !== null &&
-    nowSeconds - resetHintStartedAtSeconds >=
-      gameConfig.tutorial.resetHintDelaySeconds;
-  if (!overlay && !showResetHint && !guidance && !pushHintVisible) return;
+  if (!overlay && !guidance && !pushHintVisible) return;
   context.save();
   if (guidance) {
     drawGuidance(game, context, guidance, nowSeconds);
   }
-  if (pushHintVisible) {
-    drawKeyHint(game, context, "keySpace");
-  } else if (showResetHint) {
-    drawKeyHint(game, context, "keyR");
-  } else if (overlay?.type === "dash") {
-    drawKeyHint(game, context, "keySpace");
+  if (pushHintVisible || overlay?.type === "dash") {
+    drawKeyHint(game, context);
   }
   context.restore();
 };

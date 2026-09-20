@@ -47,9 +47,6 @@ export const gameConfig = {
     playerWalkDistanceTiles: 0.5,
     playerCreakProbability: 0.05,
   },
-  tutorial: {
-    resetHintDelaySeconds: 30,
-  },
   enemy: {
     moveIntervalSeconds: 0.45 / 1.75 / GLOBAL_SPEED_MULTIPLIER,
     chaseAlertSeconds: 0.18,

@@ -1,5 +1,4 @@
 import { gameConfig } from "./game/config";
-import { isProgressImpossible } from "./game/deadlock";
 import { GameSignal } from "./game/events";
 import { GameState, Position } from "./game/types";
 
@@ -23,9 +22,7 @@ export type TutorialState = {
   dashHintCompleted: boolean;
   blockPushHintCompleted: boolean;
   pushHintVisible: boolean;
-  hasPushedBlockThisStage: boolean;
   trackedStageIndex: number | null;
-  resetHintStartedAtSeconds: number | null;
   overlay: TutorialOverlay;
 };
 
@@ -36,9 +33,7 @@ export const createTutorial = (): TutorialState => ({
   dashHintCompleted: false,
   blockPushHintCompleted: false,
   pushHintVisible: false,
-  hasPushedBlockThisStage: false,
   trackedStageIndex: null,
-  resetHintStartedAtSeconds: null,
   overlay: null,
 });
 
@@ -48,9 +43,7 @@ export const beginTutorial = (
   game: GameState,
 ): void => {
   if (game.mode !== "game") return;
-  tutorial.hasPushedBlockThisStage = false;
   tutorial.trackedStageIndex = game.stageIndex;
-  tutorial.resetHintStartedAtSeconds = null;
   tutorial.pushHintVisible = false;
   tutorial.overlay = null;
   if (game.stageIndex !== 0 || tutorial.guidanceCompleted) return;
@@ -76,7 +69,6 @@ export const observeTutorialPush = (
   game: GameState,
 ): void => {
   if (game.mode !== "game") return;
-  tutorial.hasPushedBlockThisStage = true;
   if (game.stageIndex !== 0) return;
   if (
     PUSH_TUTORIAL_BLOCKS.some((position) =>
@@ -151,7 +143,7 @@ const canPromptPush = (tutorial: TutorialState, game: GameState): boolean =>
       ),
   );
 
-/** 進行不能，対象Blockへの接近，追跡中の操作案内を更新する。 */
+/** 対象Blockへの接近と追跡中の操作案内を更新する。 */
 export const updateTutorial = (
   tutorial: TutorialState,
   game: GameState,
@@ -160,17 +152,7 @@ export const updateTutorial = (
   if (game.mode !== "game") return;
   if (tutorial.trackedStageIndex !== game.stageIndex) {
     tutorial.trackedStageIndex = game.stageIndex;
-    tutorial.hasPushedBlockThisStage = false;
-    tutorial.resetHintStartedAtSeconds = null;
     tutorial.overlay = null;
-  }
-  if (
-    tutorial.hasPushedBlockThisStage &&
-    isProgressImpossible(game.stage, game.player)
-  ) {
-    tutorial.resetHintStartedAtSeconds ??= nowSeconds;
-  } else {
-    tutorial.resetHintStartedAtSeconds = null;
   }
   tutorial.pushHintVisible = canPromptPush(tutorial, game);
   if (tutorial.overlay?.type === "dash") return;
