@@ -110,12 +110,12 @@ const drawControls = (context: CanvasRenderingContext2D): void => {
   context.fillStyle = "#ffffff";
   context.textBaseline = "alphabetic";
   context.font = "bold 22px sans-serif";
-  context.fillText("操作方法", HUD_X + PANEL_PADDING, PANEL_Y + 38);
+  context.fillText("操作方法", HUD_X + PANEL_PADDING, PANEL_Y + 53);
   const centerX = HUD_X + HUD_WIDTH / 2;
   const movementCenterX = centerX - 28;
   const movementWidth = 3 * MOVEMENT_ICON_SIZE + 2 * KEY_ICON_GAP;
   const movementX = Math.round(movementCenterX - movementWidth / 2);
-  const movementY = PANEL_Y + 67;
+  const movementY = PANEL_Y + 82;
   movementIcons.forEach((id, index) => {
     const [offsetX, offsetY] = movementIconOffsets[index];
     context.drawImage(
