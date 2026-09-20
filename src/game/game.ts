@@ -39,8 +39,8 @@ export const startGame = (
   nowSeconds: number,
 ) => {
   if (game.mode !== "title") return false;
-  game.stageIndex = 1;
-  game.stage = createStage(1);
+  game.stageIndex = 0;
+  game.stage = createStage(0);
   game.player = createPlayer(characterType, game.stage.playerStart);
   game.elapsedSeconds = 0;
   game.mode = "game";
