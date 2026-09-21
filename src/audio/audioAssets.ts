@@ -2,14 +2,14 @@
  * BGMと効果音のViteアセットURLを登録する．
  */
 
-import gameBgm from "./assets/game-bgm.mp3";
-import walk from "./assets/walk.mp3";
-import floorCreak from "./assets/floor-creak.mp3";
-import stonePush from "./assets/stone-push.mp3";
-import itemDeliver from "./assets/item-deliver.mp3";
-import chaseAlert from "./assets/chase-alert.mp3";
-import dash from "./assets/dash.mp3";
-import itemPickup from "./assets/item-pickup.mp3";
+import gameBgm from "../assets/audio/game-bgm.mp3";
+import walk from "../assets/audio/walk.mp3";
+import floorCreak from "../assets/audio/floor-creak.mp3";
+import stonePush from "../assets/audio/stone-push.mp3";
+import itemDeliver from "../assets/audio/item-deliver.mp3";
+import chaseAlert from "../assets/audio/chase-alert.mp3";
+import dash from "../assets/audio/dash.mp3";
+import itemPickup from "../assets/audio/item-pickup.mp3";
 
 export const audioAssets = {
   gameBgm,

@@ -2,27 +2,27 @@
  * Canvas描画で使用する画像を読み込み，名前から取得できるようにする．
  */
 
-import floorSrc from "../imageloader/img/floor.png";
-import gameoverSrc from "../imageloader/img/gameover.png";
-import ghostSrc from "../imageloader/img/ghost.png";
-import heartAnimationSrc from "../imageloader/img/heart_animation.png";
-import itemSrc from "../imageloader/img/item.png";
-import playerSrc from "../imageloader/img/player.png";
-import resultSrc from "../imageloader/img/result.png";
-import titleSrc from "../imageloader/img/title.png";
-import wallSrc from "../imageloader/img/wall.png";
-import wallMossSrc from "../imageloader/img/wall_moss.png";
-import smokePuffSrc from "../imageloader/img/effects/smoke_puff.png";
-import keyASrc from "../imageloader/img/input-prompts/key-a.png";
-import keyArrowDownSrc from "../imageloader/img/input-prompts/arrow-down.png";
-import keyArrowLeftSrc from "../imageloader/img/input-prompts/arrow-left.png";
-import keyArrowRightSrc from "../imageloader/img/input-prompts/arrow-right.png";
-import keyArrowUpSrc from "../imageloader/img/input-prompts/arrow-up.png";
-import keyDSrc from "../imageloader/img/input-prompts/key-d.png";
-import keyRSrc from "../imageloader/img/input-prompts/key-r.png";
-import keySSrc from "../imageloader/img/input-prompts/key-s.png";
-import keySpaceSrc from "../imageloader/img/input-prompts/key-space.png";
-import keyWSrc from "../imageloader/img/input-prompts/key-w.png";
+import floorSrc from "../assets/images/floor.png";
+import gameoverSrc from "../assets/images/gameover.png";
+import ghostSrc from "../assets/images/ghost.png";
+import heartAnimationSrc from "../assets/images/heart_animation.png";
+import itemSrc from "../assets/images/item.png";
+import playerSrc from "../assets/images/player.png";
+import resultSrc from "../assets/images/result.png";
+import titleSrc from "../assets/images/title.png";
+import wallSrc from "../assets/images/wall.png";
+import wallMossSrc from "../assets/images/wall_moss.png";
+import smokePuffSrc from "../assets/images/smoke_puff.png";
+import keyASrc from "../assets/images/key-a.png";
+import keyArrowDownSrc from "../assets/images/arrow-down.png";
+import keyArrowLeftSrc from "../assets/images/arrow-left.png";
+import keyArrowRightSrc from "../assets/images/arrow-right.png";
+import keyArrowUpSrc from "../assets/images/arrow-up.png";
+import keyDSrc from "../assets/images/key-d.png";
+import keyRSrc from "../assets/images/key-r.png";
+import keySSrc from "../assets/images/key-s.png";
+import keySpaceSrc from "../assets/images/key-space.png";
+import keyWSrc from "../assets/images/key-w.png";
 
 /**
  * 画像ソースからHTMLImageElementを作成してsrcを設定する．
