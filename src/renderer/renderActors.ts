@@ -88,7 +88,7 @@ const getEnemyDisplayDirection = (enemy: EnemyState): Direction =>
   enemy.direction ?? "left";
 
 /**
- * Enemyのスプライト，ハート，Alert・Stun marker，Speed Effectを描画する．
+ * Enemyのスプライト，ハート，Alert marker，Speed Effectを描画する．
  * EnemyのlogicalPositionは変更せず，そこから導出したdisplayPositionで描画し，Canvas context状態を呼び出し前へ戻す．
  */
 const drawEnemy = (
@@ -144,16 +144,14 @@ const drawEnemy = (
   );
   const alert =
     (enemy.type === "chase" || enemy.type === "rush") && enemy.mode === "alert";
-  const stunned = enemy.type === "rush" && enemy.mode === "stun";
-  if (alert || stunned) {
-    context.fillStyle = alert ? "#ff3b30" : "#9aa0a6";
+  if (alert) {
+    context.fillStyle = "#ff3b30";
     context.strokeStyle = "#1b1b1b";
     context.lineWidth = Math.max(2, cellSize * 0.1);
     context.font = `bold ${Math.max(14, cellSize * 0.8)}px monospace`;
     context.textAlign = "center";
     context.textBaseline = "middle";
-    let label = "✦";
-    if (alert) label = enemy.type === "rush" ? "!!" : "!";
+    const label = enemy.type === "rush" ? "!!" : "!";
     const labelX = (displayPosition.x + 0.5) * cellSize;
     const labelY = (displayPosition.y + 0.05) * cellSize;
     context.strokeText(label, labelX, labelY);
@@ -163,7 +161,7 @@ const drawEnemy = (
 };
 
 /**
- * Player，Enemy，Alert・Stun marker，Speed Effect，Energyを順に描画する．
+ * Player，Enemy，Alert marker，Speed Effect，Energyを順に描画する．
  * 各ActorのCanvas context状態を復元し，GameStateは変更しない．
  */
 export const renderActors = (

@@ -42,7 +42,7 @@ const chooseRushDirectionAtCell: EnemyBehavior<RushEnemy>["chooseDirectionAtCell
 
 /**
  * Rush中にBlockへ到達した場合の状態遷移を処理する．
- * 内側BlockではStunへ入り，外周Blockでは回復待ちに入って方向を解除する．
+ * 内側BlockではStunへ入り，外周Blockでは突進方向を向いたまま回復待ちに入る．
  */
 const onRushBlockedCell = (enemy: RushEnemy, stage: StageState) => {
   if (enemy.mode !== "rush" || !enemy.direction) {
@@ -56,7 +56,6 @@ const onRushBlockedCell = (enemy: RushEnemy, stage: StageState) => {
   enemy.mode = hitsInternalBlock ? "stun" : "recover";
   enemy.elapsedTime = 0;
   enemy.movement = null;
-  if (!hitsInternalBlock) enemy.direction = null;
 };
 
 const getRushSpeed = (enemy: RushEnemy) =>
@@ -77,6 +76,7 @@ const rushTimedMode: NonNullable<EnemyBehavior<RushEnemy>["timedMode"]> = {
   },
   finish: (enemy) => {
     if (enemy.mode === "alert") enemy.mode = "rush";
+    if (enemy.mode === "recover") enemy.direction = null;
     if (enemy.mode === "stun" || enemy.mode === "recover")
       enemy.mode = "normal";
     enemy.elapsedTime = 0;
