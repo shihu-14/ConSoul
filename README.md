@@ -1,6 +1,6 @@
 # ConSoul
 
-<!-- 用意したティーザー画像を docs/images/teaser.png に置き、この位置に Markdown 画像を追加してください。 -->
+![ConSoul のティーザー](docs/teaser.png)
 
 ## どんなゲーム？
 
@@ -10,7 +10,7 @@ ConSoul は、敵を避けながら迷路のアイテムを回収し、納品場
 
 [ブラウザでプレイ（GitHub Pages）](https://shihu-14.github.io/ConSoul/)
 
-GitHub Pages の公開設定が完了すると、上のリンクからインストールせずに遊べます。公開前は下の手順でローカルでも起動できます。
+公開するには、変更を `main` に反映した後、GitHub リポジトリの **Settings → Pages → Build and deployment → Source** で **GitHub Actions** を選択します。`main` への push で `.github/workflows/deploy-pages.yml` が `dist/` をビルドして公開します。公開完了後、上のリンクから遊べます。
 
 ## ファイル構成
 
@@ -20,11 +20,12 @@ src/
   game/              ステージ、プレイヤー、敵、ブロックのゲームロジック
   renderer/          Canvas による画面描画
   audio/             BGM と効果音
-  imageloader/       画像アセット
-tests/
-  unit/              ゲームロジックのテスト
-  e2e/               ブラウザでの操作・表示テスト
-docs/images/         README 用の画像
+  assets/images/     ゲーム用の画像
+  assets/audio/      ゲーム用の音声
+docs/teaser.png      README 用のティーザー画像
+index.html           ブラウザの入口
+vite.config.ts       Vite の設定
+.github/workflows/deploy-pages.yml  GitHub Pages への公開
 ```
 
 ## 実行方法
