@@ -10,10 +10,6 @@ ConSoul は、敵を避けながら迷路のアイテムを回収し、納品場
 
 [ブラウザでプレイ（GitHub Pages）](https://shihu-14.github.io/ConSoul/)
 
-公開するには、変更を `main` に反映した後、GitHub リポジトリの **Settings → Pages → Build and deployment → Source** で **GitHub Actions** を選択します。`main` への push で `.github/workflows/deploy-pages.yml` が `dist/` をビルドして公開します。公開完了後、上のリンクから遊べます。
-
-非公開リポジトリで Pages を使うには対応プランが必要です。また、リポジトリが非公開でも Pages のサイトは一般公開されます。
-
 ## ファイル構成
 
 ```text
@@ -26,8 +22,6 @@ src/
   assets/audio/      ゲーム用の音声
 docs/teaser.png      README 用のティーザー画像
 index.html           ブラウザの入口
-vite.config.ts       Vite の設定
-.github/workflows/deploy-pages.yml  GitHub Pages への公開
 ```
 
 ## 実行方法
@@ -35,6 +29,6 @@ vite.config.ts       Vite の設定
 Node.js 20 系なら 20.19 以降、または 22.12 以降を使用してください。
 
 ```bash
-npm ci
+npm install
 npm run dev
 ```
