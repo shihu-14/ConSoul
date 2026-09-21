@@ -78,50 +78,51 @@ export const createSpeedEffectRenderer = () => {
   ): void => {
     const state = actorStates.get(input.actor) ?? createActorEffectState();
     actorStates.set(input.actor, state);
+    if (!input.active) {
+      state.puffs = [];
+      state.lastDisplayPosition = null;
+      state.distanceSinceEmission = 0;
+      return;
+    }
     state.puffs = state.puffs.filter(
       (puff) =>
         input.nowSeconds - puff.startedAtSeconds < PUFF_LIFETIME_SECONDS,
     );
 
-    if (input.active) {
-      const emitPuff = (displayPosition: Readonly<Position>) => {
-        state.puffs.push({
-          displayPosition: { ...displayPosition },
-          startedAtSeconds: input.nowSeconds,
-        });
-      };
+    const emitPuff = (displayPosition: Readonly<Position>) => {
+      state.puffs.push({
+        displayPosition: { ...displayPosition },
+        startedAtSeconds: input.nowSeconds,
+      });
+    };
 
-      if (state.lastDisplayPosition === null) {
-        emitPuff(getEmitterPosition(input.displayPosition, input.direction));
-      } else {
-        const deltaX = input.displayPosition.x - state.lastDisplayPosition.x;
-        const deltaY = input.displayPosition.y - state.lastDisplayPosition.y;
-        const distance = Math.hypot(deltaX, deltaY);
-        let distanceToNextEmission =
-          EMISSION_DISTANCE_TILES - state.distanceSinceEmission;
-
-        // 未完了の発生間隔をフレーム間で引き継ぎ，各区間で一定間隔に発生させる．
-        while (distance >= distanceToNextEmission) {
-          const progress = distanceToNextEmission / distance;
-          emitPuff(
-            getEmitterPosition(
-              {
-                x: state.lastDisplayPosition.x + deltaX * progress,
-                y: state.lastDisplayPosition.y + deltaY * progress,
-              },
-              input.direction,
-            ),
-          );
-          distanceToNextEmission += EMISSION_DISTANCE_TILES;
-        }
-        state.distanceSinceEmission =
-          (state.distanceSinceEmission + distance) % EMISSION_DISTANCE_TILES;
-      }
-      state.lastDisplayPosition = { ...input.displayPosition };
+    if (state.lastDisplayPosition === null) {
+      emitPuff(getEmitterPosition(input.displayPosition, input.direction));
     } else {
-      state.lastDisplayPosition = null;
-      state.distanceSinceEmission = 0;
+      const deltaX = input.displayPosition.x - state.lastDisplayPosition.x;
+      const deltaY = input.displayPosition.y - state.lastDisplayPosition.y;
+      const distance = Math.hypot(deltaX, deltaY);
+      let distanceToNextEmission =
+        EMISSION_DISTANCE_TILES - state.distanceSinceEmission;
+
+      // 未完了の発生間隔をフレーム間で引き継ぎ，各区間で一定間隔に発生させる．
+      while (distance >= distanceToNextEmission) {
+        const progress = distanceToNextEmission / distance;
+        emitPuff(
+          getEmitterPosition(
+            {
+              x: state.lastDisplayPosition.x + deltaX * progress,
+              y: state.lastDisplayPosition.y + deltaY * progress,
+            },
+            input.direction,
+          ),
+        );
+        distanceToNextEmission += EMISSION_DISTANCE_TILES;
+      }
+      state.distanceSinceEmission =
+        (state.distanceSinceEmission + distance) % EMISSION_DISTANCE_TILES;
     }
+    state.lastDisplayPosition = { ...input.displayPosition };
 
     const puffSize = PUFF_SIZE_TILES * input.cellSize;
     state.puffs.forEach((puff) => {
