@@ -18,7 +18,7 @@ module.exports = {
       },
     },
   },
-  ignorePatterns: ["src/imageloader/img"],
+  ignorePatterns: ["src/assets/images"],
   overrides: [
     {
       files: ["*.config.ts"],
