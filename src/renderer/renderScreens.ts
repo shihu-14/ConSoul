@@ -5,20 +5,25 @@
 import { GameState } from "../game/types";
 import { getImage } from "./assets";
 
-const TITLE_SELECTION_NUMBER_SOURCE_X = [510, 885, 1245] as const;
-const TITLE_SELECTION_NUMBER_SOURCE_Y = 1010;
-const TITLE_SELECTION_NUMBER_COVER_WIDTH = 110;
-const TITLE_SELECTION_NUMBER_COVER_HEIGHT = 100;
-const TITLE_SELECTION_NUMBER_PIXEL_SIZE = 12;
+const TITLE_SELECTION_NUMBER_SIZE = 75;
+const TITLE_SELECTION_NUMBERS = [
+  {
+    cover: { x: 460, y: 985, width: 75, height: 75 },
+    destination: { x: 460, y: 985 },
+  },
+  {
+    cover: { x: 840, y: 975, width: 75, height: 75 },
+    destination: { x: 840, y: 975 },
+  },
+  {
+    cover: { x: 1220, y: 975, width: 65, height: 75 },
+    destination: { x: 1215, y: 975 },
+  },
+] as const;
 const RESULT_MINUTE_NUMBER_RIGHT_X = 136;
 const RESULT_SECOND_NUMBER_RIGHT_X = 230;
 const RESULT_TIME_BASELINE_Y = 144;
 const RESULT_TIME_FONT_SIZE = 30;
-const TITLE_SELECTION_NUMBER_PATTERNS = [
-  [".#.", "##.", ".#.", ".#.", "###"],
-  ["###", "..#", "###", "#..", "###"],
-  ["###", "..#", "###", "..#", "###"],
-] as const;
 
 /**
  * 画像をCanvasの高さに合わせて縦いっぱいに描画する．
@@ -37,38 +42,32 @@ const drawFullScreenImage = (
 
 /**
  * Title画面の背景画像とキャラクター選択番号を描画する．
- * 番号は画像上の指定位置を隠してピクセルパターンを描き，1から3の選択肢を表示する．
+ * 元画像の番号だけを隠し，同じ画像から抽出した書体で1から3の選択肢を表示する．
  */
 export const renderTitle = (context: CanvasRenderingContext2D) => {
   const titleImage = getImage("title");
+  const selectionNumbersImage = getImage("titleSelectionNumbers");
   const { offsetX, imageScale } = drawFullScreenImage(context, titleImage);
   context.save();
-  TITLE_SELECTION_NUMBER_SOURCE_X.forEach((sourceX, index) => {
-    const centerX = -offsetX + sourceX * imageScale;
-    const centerY = TITLE_SELECTION_NUMBER_SOURCE_Y * imageScale;
+  TITLE_SELECTION_NUMBERS.forEach(({ cover, destination }, index) => {
     context.fillStyle = "#ffffff";
     context.fillRect(
-      centerX - (TITLE_SELECTION_NUMBER_COVER_WIDTH * imageScale) / 2,
-      centerY - (TITLE_SELECTION_NUMBER_COVER_HEIGHT * imageScale) / 2,
-      TITLE_SELECTION_NUMBER_COVER_WIDTH * imageScale,
-      TITLE_SELECTION_NUMBER_COVER_HEIGHT * imageScale,
+      -offsetX + cover.x * imageScale,
+      cover.y * imageScale,
+      cover.width * imageScale,
+      cover.height * imageScale,
     );
-    context.fillStyle = "#000000";
-    const pattern = TITLE_SELECTION_NUMBER_PATTERNS[index];
-    const pixelSize = TITLE_SELECTION_NUMBER_PIXEL_SIZE * imageScale;
-    const patternWidth = pattern[0].length * pixelSize;
-    const patternHeight = pattern.length * pixelSize;
-    pattern.forEach((row, rowIndex) => {
-      [...row].forEach((pixel, columnIndex) => {
-        if (pixel !== "#") return;
-        context.fillRect(
-          centerX - patternWidth / 2 + columnIndex * pixelSize,
-          centerY - patternHeight / 2 + rowIndex * pixelSize,
-          pixelSize,
-          pixelSize,
-        );
-      });
-    });
+    context.drawImage(
+      selectionNumbersImage,
+      index * TITLE_SELECTION_NUMBER_SIZE,
+      0,
+      TITLE_SELECTION_NUMBER_SIZE,
+      TITLE_SELECTION_NUMBER_SIZE,
+      -offsetX + destination.x * imageScale,
+      destination.y * imageScale,
+      TITLE_SELECTION_NUMBER_SIZE * imageScale,
+      TITLE_SELECTION_NUMBER_SIZE * imageScale,
+    );
   });
   context.restore();
 };
