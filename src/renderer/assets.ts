@@ -10,6 +10,7 @@ import itemSrc from "../assets/images/item.png";
 import playerSrc from "../assets/images/player.png";
 import resultSrc from "../assets/images/result.png";
 import titleSrc from "../assets/images/title.png";
+import titleSelectionNumbersSrc from "../assets/images/title-selection-numbers.png";
 import wallSrc from "../assets/images/wall.png";
 import wallMossSrc from "../assets/images/wall_moss.png";
 import smokePuffSrc from "../assets/images/smoke_puff.png";
@@ -44,6 +45,7 @@ const images = {
   player: createImage(playerSrc),
   result: createImage(resultSrc),
   title: createImage(titleSrc),
+  titleSelectionNumbers: createImage(titleSelectionNumbersSrc),
   wall: createImage(wallSrc),
   wallMoss: createImage(wallMossSrc),
   smokePuff: createImage(smokePuffSrc),
