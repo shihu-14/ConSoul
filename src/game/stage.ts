@@ -1,7 +1,3 @@
-/**
- * ステージ原本を保持し，毎回独立した実行状態を生成する．
- */
-
 import { BlockState, EnemyState, Position, StageState } from "./types";
 import {
   stageSources,
@@ -12,95 +8,54 @@ import {
 const WIDTH = 20;
 const HEIGHT = 20;
 
-/**
- * 原本のタプル座標を実行時のPositionオブジェクトへ変換する．
- */
 const toPosition = (value: readonly [number, number]): Position => ({
   x: value[0],
   y: value[1],
 });
 
-/**
- * Stage原本のEnemy定義を実行時のEnemyStateへ変換する．
- * 種別ごとの初期モード，方向，移動状態，巡回経路を新しいオブジェクトとして作成する．
- */
 const createEnemy = (source: StageEnemySource): EnemyState => {
   const position = toPosition(source.position);
-  switch (source.type) {
-    case "random":
-      return { type: "random", position, direction: null, movement: null };
-    case "patrol":
-      return {
-        type: "patrol",
-        position,
-        direction: null,
-        movement: null,
-        route: source.route.map(toPosition),
-        routeIndex: 0,
-      };
-    case "chase":
-      return {
-        type: "chase",
-        position,
-        direction: null,
-        movement: null,
-        chaseProbability: source.chaseProbability,
-        mode: "normal",
-        elapsedTime: 0,
-      };
-    case "rush":
-      return {
-        type: "rush",
-        position,
-        direction: null,
-        movement: null,
-        mode: "normal",
-        elapsedTime: 0,
-      };
-    default:
-      throw new Error("未知の敵種別です。");
+  if (source.type === "random") {
+    return { type: "random", position, direction: null, movement: null };
   }
+  if (source.type === "patrol") {
+    return {
+      type: "patrol",
+      position,
+      direction: null,
+      movement: null,
+      route: source.route.map(toPosition),
+      routeIndex: 0,
+    };
+  }
+  if (source.type === "chase") {
+    return {
+      type: "chase",
+      position,
+      direction: null,
+      movement: null,
+      chaseProbability: source.chaseProbability,
+      mode: "normal",
+      elapsedTime: 0,
+    };
+  }
+  return {
+    type: "rush",
+    position,
+    direction: null,
+    movement: null,
+    mode: "normal",
+    elapsedTime: 0,
+  };
 };
 
-let stageSourcesValidated = false;
-let stageSourcesValidationError: Error | null = null;
-
-/**
- * 本番のStage原本を初回だけ検証し，成功または失敗の結果を保持する．
- * 失敗時は保持したErrorを再throwし，不正な原本からStageStateを生成しない不変条件を守る．
- */
-const ensureValidStageSources = () => {
-  if (stageSourcesValidated) {
-    if (stageSourcesValidationError) throw stageSourcesValidationError;
-    return;
-  }
-  // 公開APIをまとめるため，検証関数は実行時ファクトリの下に定義する．
-  // eslint-disable-next-line no-use-before-define
-  const errors = validateStages();
-  stageSourcesValidated = true;
-  if (errors.length > 0) {
-    stageSourcesValidationError = new Error(
-      `Stage原本が不正です。\n${errors.join("\n")}`,
-    );
-    throw stageSourcesValidationError;
-  }
-};
-
-/**
- * 定義済みStageの総数を返す．
- */
 export const getStageCount = () => stageSources.length;
 
-/**
- * 指定したStage番号から独立した実行時StageStateを作成する．
- * 原本の文字列と配列を直接再利用せず，Block，Item，Enemy，経路，座標をすべて複製して初期化する．
- */
 export const createStage = (stageIndex: number): StageState => {
-  ensureValidStageSources();
   const source = stageSources[stageIndex];
   if (!source) throw new Error(`ステージ${stageIndex + 1}は存在しません。`);
 
-  // 変更不能な原本から全オブジェクトを作り直し，前回の移動座標やAI状態の参照を残さない．
+  // リトライ前の移動状態が残らないよう、原本から毎回作り直す。
   const blocks: BlockState[] = [];
   for (let index = 0; index < source.grid.length; index += 1) {
     if (source.grid[index] === "#" || source.grid[index] === "B") {
@@ -126,9 +81,6 @@ export const createStage = (stageIndex: number): StageState => {
   };
 };
 
-/**
- * 原本の座標が20×20のStage範囲内にある整数座標か判定する．
- */
 const isInside = (position: readonly [number, number]) =>
   Number.isInteger(position[0]) &&
   Number.isInteger(position[1]) &&
@@ -137,18 +89,11 @@ const isInside = (position: readonly [number, number]) =>
   position[0] < WIDTH &&
   position[1] < HEIGHT;
 
-/**
- * 全Stageの原本データがゲームの前提条件を満たすか検証する．
- * 盤面サイズ，セル種別，外周壁，配置座標，巡回経路の隣接性を確認し，エラー一覧を返す．
- */
 export function validateStages(
   sources: readonly StageSource[] = stageSources,
 ): string[] {
   const errors: string[] = [];
   sources.forEach((stage, stageIndex) => {
-    /**
-     * Stage原本内の配置座標が範囲内かつ床セルかを検証する．
-     */
     const validateWalkablePosition = (
       position: readonly [number, number],
       label: string,
@@ -226,3 +171,12 @@ export function validateStages(
   });
   return errors;
 }
+
+const assertValidStageSources = () => {
+  const errors = validateStages();
+  if (errors.length > 0) {
+    throw new Error(`Stage原本が不正です。\n${errors.join("\n")}`);
+  }
+};
+
+assertValidStageSources();

@@ -1,7 +1,3 @@
-/**
- * BGMと効果音のViteアセットURLを登録する．
- */
-
 import gameBgm from "../assets/audio/game-bgm.mp3";
 import walk from "../assets/audio/walk.mp3";
 import floorCreak from "../assets/audio/floor-creak.mp3";

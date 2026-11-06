@@ -1,7 +1,3 @@
-/**
- * Canvas描画で使用する画像を読み込み，名前から取得できるようにする．
- */
-
 import floorSrc from "../assets/images/floor.png";
 import gameoverSrc from "../assets/images/gameover.png";
 import ghostSrc from "../assets/images/ghost.png";
@@ -25,17 +21,12 @@ import keySSrc from "../assets/images/key-s.png";
 import keySpaceSrc from "../assets/images/key-space.png";
 import keyWSrc from "../assets/images/key-w.png";
 
-/**
- * 画像ソースからHTMLImageElementを作成してsrcを設定する．
- * 画像の登録時に一度だけ呼び出し，描画時は作成済みの要素を再利用する．
- */
 const createImage = (source: string) => {
   const image = new Image();
   image.src = source;
   return image;
 };
 
-// ゲームで使用する画像を名前付きで一括登録する．
 const images = {
   floor: createImage(floorSrc),
   gameover: createImage(gameoverSrc),
@@ -61,7 +52,4 @@ const images = {
   keyW: createImage(keyWSrc),
 };
 
-/**
- * 登録済み画像を名前で取得する．
- */
 export const getImage = (id: keyof typeof images) => images[id];

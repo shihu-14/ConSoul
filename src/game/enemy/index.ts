@@ -1,7 +1,3 @@
-/**
- * Enemy種別ごとの挙動を共通更新処理へ接続する．
- */
-
 import { updateEnemy } from "./common";
 import { chaseBehavior } from "./chase";
 import { patrolBehavior } from "./patrol";
@@ -10,10 +6,6 @@ import { rushBehavior } from "./rush";
 import { GameSignal } from "../events";
 import { PlayerState, StageState } from "../types";
 
-/**
- * Stage内の全Enemyを同じ時間幅で順番に更新する．
- * 乱数生成関数を引数で受け取り，テスト時は決定的なEnemy挙動を再現できるようにする．
- */
 export const updateEnemies = (
   stage: StageState,
   player: PlayerState,

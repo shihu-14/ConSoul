@@ -1,24 +1,13 @@
-/**
- * 整数グリッド上の座標計算，占有判定，表示座標，矩形衝突を扱う．
- */
-
 import { BlockState, Direction, Position, StageState } from "./types";
 
 const EPS = 1e-8;
 
-/**
- * BlockがStageの外周にあるかを座標から判定する．
- * 外周Blockは固定壁として扱い，内側BlockだけがPush対象になる．
- */
 export const isBoundaryBlock = (block: BlockState, stage: StageState) =>
   block.position.x === 0 ||
   block.position.y === 0 ||
   block.position.x === stage.width - 1 ||
   block.position.y === stage.height - 1;
 
-/**
- * Directionを1セル分の座標差へ変換する．
- */
 export const getDirectionVector = (direction: Direction): Position => {
   switch (direction) {
     case "up":
@@ -34,18 +23,11 @@ export const getDirectionVector = (direction: Direction): Position => {
   }
 };
 
-/**
- * 2つのPositionが同じセルを指しているか比較する．
- */
 export const positionsEqual = (
   first: Readonly<Position>,
   second: Readonly<Position>,
 ) => first.x === second.x && first.y === second.y;
 
-/**
- * 指定方向へ1セル進んだ整数セル座標を返す．
- * 元のlogicalPositionは変更せず，方向ベクトルを加えた新しいPositionを作成する．
- */
 export const getNextPosition = (
   logicalPosition: Readonly<Position>,
   direction: Direction,
@@ -57,10 +39,6 @@ export const getNextPosition = (
   };
 };
 
-/**
- * 論理セル座標と移動進捗から描画用座標を導出する．
- * logicalPositionは整数セルのまま保持し，現在セル内のelapsedDistanceを方向へ加えてdisplayPositionを導出する．
- */
 export const getDisplayPosition = (
   logicalPosition: Readonly<Position>,
   direction: Direction | null,
@@ -74,10 +52,6 @@ export const getDisplayPosition = (
   };
 };
 
-/**
- * 指定セルが盤面内で移動可能かを判定する．
- * 盤面外，停止中Blockのセル，移動中Blockの起点と導出先をすべて壁として扱う．
- */
 export const isCellBlocked = (
   stage: StageState,
   logicalPosition: Readonly<Position>,
@@ -90,6 +64,7 @@ export const isCellBlocked = (
   ) {
     return true;
   }
+  // 移動中は、元のマスと移動先の両方を塞ぐ。
   return stage.blocks.some(
     (block) =>
       positionsEqual(block.position, logicalPosition) ||
@@ -101,9 +76,6 @@ export const isCellBlocked = (
   );
 };
 
-/**
- * Stage内でBlockが占有している起点セルと移動先セルのキー集合を返す．
- */
 export const getBlockedCellKeys = (stage: StageState) => {
   const blocked = new Set<string>();
   stage.blocks.forEach((block) => {
@@ -121,10 +93,7 @@ export const getBlockedCellKeys = (stage: StageState) => {
   return blocked;
 };
 
-/**
- * 1セルの矩形同士が厳密に重なっているか判定する．
- * 辺が接触するだけの場合は重なりとみなさない．
- */
+// 辺が触れただけなら衝突扱いにしない。
 export const rectanglesOverlap = (
   firstDisplayPosition: Readonly<Position>,
   secondDisplayPosition: Readonly<Position>,

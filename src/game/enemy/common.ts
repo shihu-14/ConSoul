@@ -1,8 +1,4 @@
-/**
- * Enemy全体で共有する移動，時間，Block判定，方向選択を処理する．
- */
-
-// 残り時間を同じ共通ループで再評価するため，continueを使用する．
+// 待機と移動を同じループで消費する．
 /* eslint-disable no-continue */
 
 import { gameConfig, getEnemySpeedTilesPerSecond } from "../config";
@@ -31,32 +27,15 @@ export const oppositeDirection: Record<Direction, Direction> = {
   right: "left",
 };
 
-/**
- * 配列から乱数で1要素を選択する．
- * 乱数が範囲外でも配列の先頭または末尾に収め，呼び出し側の選択処理を安定させる．
- */
-export const chooseRandom = <T>(values: readonly T[], random: () => number) => {
-  const index = Math.min(
-    values.length - 1,
-    Math.max(0, Math.floor(random() * values.length)),
-  );
-  return values[index];
-};
+export const chooseRandom = <T>(values: readonly T[], random: () => number) =>
+  values[Math.floor(random() * values.length)];
 
-/**
- * Enemyの現在セルから移動可能な方向だけを抽出する．
- * 盤面外とBlockの起点・導出先はStageの壁判定に従って除外する．
- */
 export const getLegalDirections = (enemy: EnemyState, stage: StageState) =>
   directions.filter(
     (direction) =>
       !isCellBlocked(stage, getNextPosition(enemy.position, direction)),
   );
 
-/**
- * Enemyの次の移動方向をランダムに選択する．
- * 可能なら直前方向の逆走を避け，逆走以外の選択肢がなければ合法方向から選ぶ．
- */
 export const chooseRandomDirection = (
   enemy: EnemyState,
   stage: StageState,
@@ -71,19 +50,11 @@ export const chooseRandomDirection = (
   return chooseRandom(forward.length > 0 ? forward : legal, random);
 };
 
-/**
- * PlayerがEnemyの検知範囲内にいるかマンハッタン距離で判定する．
- * 検知範囲は選択中のキャラクター設定から取得する．
- */
 export const isDetected = (enemy: EnemyState, player: PlayerState) =>
   Math.abs(enemy.position.x - player.position.x) +
     Math.abs(enemy.position.y - player.position.y) <=
   gameConfig.player[player.characterType].detectionRangeTiles;
 
-/**
- * EnemyとPlayerが同一直線上にいてBlockに遮られていない場合の方向を返す．
- * 同一直線上でない場合，または途中セルにBlockがある場合はnullを返す．
- */
 export const getLineOfSightDirection = (
   enemy: EnemyState,
   player: PlayerState,
@@ -125,10 +96,6 @@ export type EnemyBehavior<T extends EnemyState> = {
   onBlockedCell?: (enemy: T, stage: StageState) => void;
 };
 
-/**
- * 指定したlogicalPositionのセルを占有しているBlockを返す．
- * 移動中Blockは整数起点と導出先の両方を占有セルとして扱う．
- */
 export const findBlockAtCell = (
   stage: StageState,
   logicalPosition: Readonly<Position>,
@@ -143,20 +110,11 @@ export const findBlockAtCell = (
         )),
   );
 
-/**
- * Enemyが次セルへ進めない場合の通常停止処理を行う．
- * Rushだけは専用のBlock衝突処理を持つため，呼び出し側から上書きできる．
- */
 export const stopAtBlockedCell = (enemy: EnemyState) => {
   enemy.direction = null;
   enemy.movement = null;
 };
 
-/**
- * 1体のEnemyを時間経過分だけ更新する．
- * 時間付きモードの待機とセル単位の移動を順に処理し，EnemyのlogicalPositionはセル完了時だけ整数更新する．
- * 1回の呼び出しで複数セル進む場合も，残り時間を使って状態遷移を連続処理する．
- */
 export const updateEnemy = <T extends EnemyState>(
   enemy: T,
   player: PlayerState,
@@ -166,10 +124,10 @@ export const updateEnemy = <T extends EnemyState>(
   behavior: EnemyBehavior<T>,
   signals: GameSignal[],
 ): void => {
-  let remainingSeconds = Math.max(0, deltaSeconds);
+  let remainingSeconds = deltaSeconds;
   let evaluateState = true;
 
-  // 時間モードと1マス移動を順に消費し，フレーム分割による結果の差を作らない．
+  // フレームの切れ目で結果が変わらないよう，残り時間を使い切る．
   while (evaluateState || remainingSeconds > EPS) {
     evaluateState = false;
     const { timedMode } = behavior;
@@ -182,7 +140,7 @@ export const updateEnemy = <T extends EnemyState>(
         );
         const consumedTime = Math.min(remainingSeconds, waitRemaining);
         timedMode.addElapsedTime(enemy, consumedTime);
-        remainingSeconds = Math.max(0, remainingSeconds - consumedTime);
+        remainingSeconds -= consumedTime;
         if (consumedTime + EPS < waitRemaining) return;
         timedMode.finish(enemy);
         const waitTimeAfterFinish = timedMode.getWaitTime(enemy);
@@ -197,7 +155,7 @@ export const updateEnemy = <T extends EnemyState>(
       }
     }
 
-    // 方向決定はセル境界だけで行い，移動中の方向を固定する．
+    // 進行方向はセル境界でだけ決める．
     if (!enemy.movement) {
       signals.push(
         ...behavior.chooseDirectionAtCell(enemy, player, stage, random),
@@ -213,7 +171,6 @@ export const updateEnemy = <T extends EnemyState>(
         enemy.position,
         enemy.direction,
       );
-      // 次セルが塞がっている場合はEnemy種別ごとの停止処理を行う．
       if (isCellBlocked(stage, nextLogicalPosition)) {
         if (behavior.onBlockedCell) {
           behavior.onBlockedCell(enemy, stage);
@@ -234,7 +191,7 @@ export const updateEnemy = <T extends EnemyState>(
     enemy.movement.elapsedDistance += distance;
     const consumedTime = distance / speed;
     timedMode?.addElapsedTime(enemy, consumedTime);
-    remainingSeconds = Math.max(0, remainingSeconds - consumedTime);
+    remainingSeconds -= consumedTime;
 
     if (distance + EPS < distanceRemaining) return;
     enemy.position = getNextPosition(enemy.position, enemy.direction);

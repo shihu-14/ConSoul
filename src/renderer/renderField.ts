@@ -26,13 +26,11 @@ const getBlockSprites = (block: BlockState) => {
   return selected;
 };
 
-/** 同じStageをRで作り直すとき、各Blockの画像バリエーションを順番どおり引き継ぐ。 */
+// リトライで墓石の見た目まで変わらないようにする。
 export const preserveBlockSpritesOnRetry = (
   previousBlocks: readonly BlockState[],
   freshBlocks: readonly BlockState[],
 ): void => {
-  if (previousBlocks.length !== freshBlocks.length)
-    throw new Error("Retry前後のBlock数が一致しない。");
   freshBlocks.forEach((block, index) => {
     spritesByBlock.set(block, { ...getBlockSprites(previousBlocks[index]) });
   });
@@ -46,10 +44,6 @@ const getHorizontalEndPosition = (block: BlockState) =>
     ? getNextPosition(block.position, block.movement.direction)
     : block.position;
 
-/**
- * 床，Block，残りItem，Postをゲームフィールドへ描画する．
- * 描画中はGameStateを変更せず，移動中Blockの表示座標だけを補間する．
- */
 export const renderField = (
   game: GameState,
   context: CanvasRenderingContext2D,
@@ -57,7 +51,7 @@ export const renderField = (
   const cellSize = getCellSize(game);
   for (let logicalY = 0; logicalY < game.stage.height; logicalY += 1) {
     for (let logicalX = 0; logicalX < game.stage.width; logicalX += 1) {
-      // セル座標から決定的に床テクスチャのバリエーションを選択する．
+      // 描き直すたびに床が変わらないよう、座標だけで種類を決める。
       const floorVariant = Math.floor(
         Math.abs(Math.sin(logicalX * 12.9898 + logicalY * 78.233) % 1) * 4,
       );
@@ -87,7 +81,7 @@ export const renderField = (
         candidate.position.y === block.position.y + 1,
     );
     const endPosition = getHorizontalEndPosition(block);
-    // 横押し中は開始時から移動後の覆いを使い、縦移動中は元のマスで判定する。
+    // 横押し中だけ、移動先の墓石との重なりを先に反映する。
     const horizontalFrontChange =
       isMovingHorizontally(block) ||
       game.stage.blocks.some(

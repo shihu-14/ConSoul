@@ -46,10 +46,6 @@ const drawStageProgress = (
   context.restore();
 };
 
-/**
- * HUDのInventory背景とPlayerが所持するItem一覧を描画する．
- * Itemは共通のdrawItemへ委譲し，Canvas context状態を呼び出し前へ戻す．
- */
 const drawInventory = (
   game: GameState,
   context: CanvasRenderingContext2D,
@@ -99,10 +95,6 @@ const drawInventory = (
   context.restore();
 };
 
-/**
- * HUDの移動，Action，リセット操作案内を描画する．
- * 固定レイアウトへ画像とテキストを配置し，Canvas context状態を呼び出し前へ戻す．
- */
 const drawControls = (context: CanvasRenderingContext2D): void => {
   context.save();
   context.fillStyle = "rgba(0, 0, 0, 0.68)";
@@ -155,10 +147,6 @@ const drawControls = (context: CanvasRenderingContext2D): void => {
   context.restore();
 };
 
-/**
- * Stage番号，Inventory，操作案内をゲーム画面の右側へ描画する．
- * 各パネルのCanvas context状態を復元し，GameStateは変更しない．
- */
 export const renderHud = (
   game: GameState,
   context: CanvasRenderingContext2D,

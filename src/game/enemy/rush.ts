@@ -1,7 +1,3 @@
-/**
- * Rush Enemyの検知，突進方向の固定，Block衝突，Stunを処理する．
- */
-
 import {
   chooseRandomDirection,
   EnemyBehavior,
@@ -19,9 +15,6 @@ import { EnemyState, StageState } from "../types";
 
 type RushEnemy = Extract<EnemyState, { type: "rush" }>;
 
-/**
- * Rush Enemyの検知結果から，通常移動，Alert，Rushの方向を決定する．
- */
 const chooseRushDirectionAtCell: EnemyBehavior<RushEnemy>["chooseDirectionAtCell"] =
   (enemy, player, stage, random) => {
     if (enemy.mode === "rush") return [];
@@ -40,10 +33,7 @@ const chooseRushDirectionAtCell: EnemyBehavior<RushEnemy>["chooseDirectionAtCell
     return [{ type: "chaseAlert" }];
   };
 
-/**
- * Rush中にBlockへ到達した場合の状態遷移を処理する．
- * 内側BlockではStunへ入り，外周Blockでは突進方向を向いたまま回復待ちに入る．
- */
+// 動かせる墓石にぶつかったときだけスタンする．
 const onRushBlockedCell = (enemy: RushEnemy, stage: StageState) => {
   if (enemy.mode !== "rush" || !enemy.direction) {
     enemy.direction = null;

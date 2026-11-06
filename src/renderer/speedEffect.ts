@@ -36,20 +36,12 @@ const directionVector: Record<Direction, Position> = {
   right: { x: 1, y: 0 },
 };
 
-/**
- * ActorごとのSpeed Effect状態を新規作成する．
- * 表示座標の履歴，発生間隔，煙の一覧を初期化し，Gameplay状態は変更しない．
- */
 const createActorEffectState = (): ActorEffectState => ({
   lastDisplayPosition: null,
   distanceSinceEmission: 0,
   puffs: [],
 });
 
-/**
- * ActorのdisplayPositionと方向から煙の発生位置を導出する．
- * 入力座標を変更せず，Actorの後方へ一定距離ずらした新しいPositionを返す．
- */
 const getEmitterPosition = (
   displayPosition: Readonly<Position>,
   direction: Direction,
@@ -61,17 +53,10 @@ const getEmitterPosition = (
   };
 };
 
-/**
- * Renderer専用のActor別Speed Effect状態を生成・保持する．
- * 視覚状態はWeakMap等へ保持し，GameStateへ保存しない不変条件を守る．
- */
+// 煙の状態は見た目だけのものなので、ゲーム状態には入れない。
 export const createSpeedEffectRenderer = () => {
   const actorStates = new WeakMap<object, ActorEffectState>();
 
-  /**
-   * Actorの移動距離に応じて煙を発生・更新し，Canvasへ描画する．
-   * Renderer専用のWeakMap状態だけを更新し，Gameplay状態とdisplayPositionは変更しない．
-   */
   const drawActor = (
     context: CanvasRenderingContext2D,
     input: SpeedEffectInput,
@@ -105,7 +90,7 @@ export const createSpeedEffectRenderer = () => {
       let distanceToNextEmission =
         EMISSION_DISTANCE_TILES - state.distanceSinceEmission;
 
-      // 未完了の発生間隔をフレーム間で引き継ぎ，各区間で一定間隔に発生させる．
+      // フレームレートに関係なく、同じ移動距離ごとに煙を出す。
       while (distance >= distanceToNextEmission) {
         const progress = distanceToNextEmission / distance;
         emitPuff(

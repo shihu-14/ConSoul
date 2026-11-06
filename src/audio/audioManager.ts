@@ -1,8 +1,3 @@
-/**
- * BGMと効果音の再生を一元管理する．
- * GameStateやゲームロジックへブラウザー音声APIを持ち込まない．
- */
-
 import { GameSignal } from "../game/events";
 import { Mode } from "../game/types";
 import { audioAssets, SfxId } from "./audioAssets";
@@ -105,9 +100,7 @@ const connectWalkingGain = (audio: HTMLAudioElement) => {
   amplifiedSfxNodes.set(audio, { source, gain });
 };
 
-/**
- * 音声再生のPromise拒否を未処理にせず，再生開始成功後の処理も安全に実行する．
- */
+// ブラウザー側の設定で再生を拒否されることがある。
 const startAudio = (
   audio: HTMLAudioElement,
   onRejected?: () => void,
@@ -119,9 +112,6 @@ const startAudio = (
     .catch(() => onRejected?.());
 };
 
-/**
- * 効果音の再生管理対象からAudio要素を外し，関連する停止予約も解除する．
- */
 const releaseSfx = (audio: HTMLAudioElement) => {
   activeSfx.delete(audio);
   sfxPlaybackIds.set(audio, (sfxPlaybackIds.get(audio) ?? 0) + 1);
@@ -131,47 +121,32 @@ const releaseSfx = (audio: HTMLAudioElement) => {
   sfxStopTimers.delete(audio);
 };
 
-/**
- * 指定した効果音を停止し，次回再生時に先頭から始められる状態へ戻す．
- */
 const stopSfx = (audio: HTMLAudioElement) => {
   audio.pause();
   audio.currentTime = 0;
   releaseSfx(audio);
 };
 
-/**
- * ゲームBGMをLoop再生する．
- * 既に再生中の場合は再開処理を重複させない．
- */
 export const playBgm = () => {
   resumeAudioContext();
   if (bgm.paused) startAudio(bgm);
 };
 
-/**
- * ゲームBGMを停止し，次回開始時は先頭から再生する．
- */
 export const stopBgm = () => {
   bgm.pause();
   bgm.currentTime = 0;
 };
 
-/**
- * 再生中の効果音をすべて停止し，次のゲーム開始時に残らないようにする．
- */
 export const stopAllSfx = () => {
   Array.from(activeSfx).forEach(stopSfx);
 };
 
-/**
- * BGMと効果音をまとめて停止する．画面遷移時の音声終了に使用する．
- */
 export const stopAllAudio = () => {
   stopBgm();
   stopAllSfx();
 };
 
+// 同じ効果音が重なってもよいように、Audio要素を少数だけ使い回す。
 const getSfxVoice = (id: SfxId) => {
   const voices = sfxVoices.get(id) ?? [];
   const available = voices.find((audio) => !activeSfx.has(audio));
@@ -192,10 +167,6 @@ const getSfxVoice = (id: SfxId) => {
   return audio;
 };
 
-/**
- * 指定した効果音を一回再生する．durationSecondsを指定した場合は，その時間で動的に停止する．
- * 同じ効果音の重なりを許可しつつ，音声要素を再利用する．
- */
 export const playSfx = (id: SfxId, durationSeconds?: number) => {
   const audio = getSfxVoice(id);
   const metadata = sfxMetadata[id];
@@ -225,9 +196,6 @@ export const playSfx = (id: SfxId, durationSeconds?: number) => {
   );
 };
 
-/**
- * ゲームイベントを対応する効果音へ変換し，発生順に再生する．
- */
 export const playGameEvents = (events: readonly GameSignal[]) => {
   events.forEach((event) => {
     const durationSeconds =
@@ -236,10 +204,6 @@ export const playGameEvents = (events: readonly GameSignal[]) => {
   });
 };
 
-/**
- * 現在の画面モードに応じてBGMの再生状態を同期する．
- * gameとstageTransitionでは再生し，その他の画面では停止する．
- */
 export const syncBgmMode = (mode: Mode) => {
   if (mode === "game" || mode === "stageTransition") {
     playBgm();

@@ -13,9 +13,5 @@ export const MOVEMENT_ICON_SIZE = 46;
 export const ACTION_ICON_SIZE = 104;
 export const KEY_ICON_GAP = 1;
 
-/**
- * Stage幅から1セルのCanvas表示サイズを算出する．
- * ゲームフィールドを960px幅に収め，Stageの幅に応じてセルサイズを決定する．
- */
 export const getCellSize = (game: GameState): number =>
   FIELD_SIZE / game.stage.width;

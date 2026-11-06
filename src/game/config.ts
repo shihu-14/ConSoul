@@ -1,13 +1,5 @@
-/**
- * ゲーム中に変化しない速度，時間，Energyの調整値を定義する．
- */
-
 const GLOBAL_SPEED_MULTIPLIER = 1.2;
 
-/**
- * ゲーム全体で共有する不変のバランス値を定義する．
- * Player，Enemy，Action，Energy，Audioの設定値をここへ集約し，実行中に変更しない．
- */
 export const gameConfig = {
   globalSpeedMultiplier: GLOBAL_SPEED_MULTIPLIER,
   simulation: {
@@ -57,10 +49,6 @@ export const gameConfig = {
   },
 } as const;
 
-/**
- * キャラクター種別と所持Item数から通常歩行の速度をタイル毎秒で算出する．
- * 基本移動間隔に所持Item数に応じた減速率を掛け，その逆数を速度として返す．
- */
 export const getPlayerSpeedTilesPerSecond = (
   characterType: keyof typeof gameConfig.player,
   heldItemCount: number,
@@ -72,32 +60,17 @@ export const getPlayerSpeedTilesPerSecond = (
   return 1 / interval;
 };
 
-/**
- * キャラクター種別からDash速度をタイル毎秒で算出する．
- * 所持Itemによる減速を適用しない基本Player速度にDash倍率を掛ける．
- */
 export const getPlayerDashSpeedTilesPerSecond = (
   characterType: keyof typeof gameConfig.player,
 ) =>
   getPlayerSpeedTilesPerSecond(characterType, 0) *
   gameConfig.action.dashSpeedMultiplier;
 
-/**
- * 通常Enemyの速度をタイル毎秒で返す．
- */
 export const getEnemySpeedTilesPerSecond = () =>
   1 / gameConfig.enemy.moveIntervalSeconds;
 
-/**
- * Chase中のEnemy速度をタイル毎秒で返す．
- * 所持ItemがないExorcistの通常歩行速度をChase速度として共有する．
- */
 export const getChaseSpeedTilesPerSecond = () =>
   getPlayerSpeedTilesPerSecond("exorcist", 0);
 
-/**
- * Rush中のEnemy速度をタイル毎秒で返す．
- * 通常Enemy速度をRush間隔倍率で割り，通常より高速な移動速度を作る．
- */
 export const getRushSpeedTilesPerSecond = () =>
   getEnemySpeedTilesPerSecond() / gameConfig.enemy.rushIntervalMultiplier;

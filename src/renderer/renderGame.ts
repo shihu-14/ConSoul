@@ -3,9 +3,6 @@ import { renderActors } from "./renderActors";
 import { renderField } from "./renderField";
 import { renderHud } from "./renderHud";
 
-/**
- * Game画面をフィールド，Actor，HUDの既存順序で合成描画する．
- */
 export const renderGame = (
   game: GameState,
   context: CanvasRenderingContext2D,

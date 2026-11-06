@@ -1,7 +1,3 @@
-/**
- * ブラウザーの入力，ゲーム更新，Canvas描画を一つのフレームループへ接続する．
- */
-
 import "./style.css";
 import {
   playBgm,
@@ -10,7 +6,7 @@ import {
   stopAllAudio,
   syncBgmMode,
 } from "./audio/audioManager";
-import { getActiveBlockPushDurationSeconds } from "./game/block";
+import { gameConfig } from "./game/config";
 import {
   createGame,
   performGameAction,
@@ -44,17 +40,11 @@ const context = canvas.getContext("2d");
 if (!context) throw new Error("Canvas 2D Contextを取得できない。");
 context.imageSmoothingEnabled = false;
 
-/**
- * ブラウザーの高精度時計を秒単位で返す．
- */
 const getNowSeconds = () => performance.now() / 1000;
 const game = createGame(getNowSeconds());
 const tutorial = createTutorial();
 let previousFrameSeconds = getNowSeconds();
 
-/**
- * ResultまたはGameOver画面からTitleへ戻し，入力状態とフレーム基準時刻を初期化する．
- */
 const returnFromFinishedScreen = () => {
   const nowSeconds = getNowSeconds();
   if (returnToTitle(game, nowSeconds)) {
@@ -64,7 +54,6 @@ const returnFromFinishedScreen = () => {
   }
 };
 
-// キーボード入力をGameのAction，リトライ，キャラクター選択，結果共有へ接続する．
 registerInput({
   onAction: (direction) => {
     if (game.mode === "result" || game.mode === "gameOver") {
@@ -79,11 +68,10 @@ registerInput({
     }
     if (result === "push") {
       observeTutorialPush(tutorial, game);
-      const durationSeconds = getActiveBlockPushDurationSeconds(game.stage);
       playGameEvents([
         {
           type: "blockPush",
-          durationSeconds,
+          durationSeconds: gameConfig.action.blockPushDurationSeconds,
         },
       ]);
     }
@@ -110,7 +98,7 @@ registerInput({
   },
   onShareResult: () => {
     if (game.mode !== "result") return;
-    const elapsedSeconds = Math.max(0, Math.round(game.elapsedSeconds));
+    const elapsedSeconds = Math.round(game.elapsedSeconds);
     const minutes = Math.floor(elapsedSeconds / 60);
     const seconds = elapsedSeconds % 60;
     const text = `ConSoulを${minutes}分${seconds}秒でクリアしました！`;
@@ -119,13 +107,9 @@ registerInput({
   },
 });
 
-/**
- * requestAnimationFrameの1フレームを処理する．
- * 前フレームとの差分時間でGameを更新し，現在のmodeに対応する画面を描画して次フレームを予約する．
- */
 const tick = (timestampMilliseconds: number) => {
   const nowSeconds = timestampMilliseconds / 1000;
-  const deltaSeconds = Math.max(0, nowSeconds - previousFrameSeconds);
+  const deltaSeconds = nowSeconds - previousFrameSeconds;
   previousFrameSeconds = nowSeconds;
 
   const events = updateGame(game, getMoveDirection(), deltaSeconds, nowSeconds);

@@ -1,7 +1,3 @@
-/**
- * ゲーム全体の生成，更新順，モード遷移，ステージ再生成を管理する．
- */
-
 import { gameConfig } from "./config";
 import { updateEnemies } from "./enemy";
 import { getDisplayPosition, rectanglesOverlap } from "./grid";
@@ -13,10 +9,6 @@ import { CharacterType, Direction, GameState } from "./types";
 
 const EPS = 1e-8;
 
-/**
- * タイトル画面から開始するGameStateを作成する．
- * Stage 1，初期Player，タイトルモード，経過時間0を新規に組み立てる．
- */
 export const createGame = (nowSeconds: number): GameState => {
   const stage = createStage(0);
   return {
@@ -29,10 +21,6 @@ export const createGame = (nowSeconds: number): GameState => {
   };
 };
 
-/**
- * タイトル画面で選択されたキャラクターによるゲームを開始する．
- * Stage 1とPlayerを再生成し，Run全体の経過時間を0へ戻してgameモードへ遷移する．
- */
 export const startGame = (
   game: GameState,
   characterType: CharacterType,
@@ -48,11 +36,6 @@ export const startGame = (
   return true;
 };
 
-/**
- * 現在のStageだけを初期状態へ戻す．
- * Stage番号と選択キャラクター，Run全体の経過時間を維持し，StageとPlayerを新規作成する．
- */
-
 export const retryStage = (game: GameState, nowSeconds: number) => {
   if (game.mode !== "game") return false;
   const { characterType } = game.player;
@@ -62,10 +45,6 @@ export const retryStage = (game: GameState, nowSeconds: number) => {
   return true;
 };
 
-/**
- * Gameモード中のActionをPlayer処理へ転送する．
- * requestedDirectionがnullの場合はPlayerの現在方向を使い，Gameモード以外では無視する．
- */
 export const performGameAction = (
   game: GameState,
   requestedDirection: Direction | null,
@@ -78,10 +57,6 @@ export const performGameAction = (
   );
 };
 
-/**
- * ResultまたはGameOver画面からタイトル画面へ戻す．
- * 対象モード以外では状態を変更せずfalseを返す．
- */
 export const returnToTitle = (game: GameState, nowSeconds: number) => {
   if (game.mode !== "result" && game.mode !== "gameOver") return false;
   game.mode = "title";
@@ -89,10 +64,6 @@ export const returnToTitle = (game: GameState, nowSeconds: number) => {
   return true;
 };
 
-/**
- * Item納品完了時のStage終了先を決定する．
- * 最終Stageならresultへ，途中StageならstageTransitionへ遷移し，モード開始時刻を記録する．
- */
 const completeStage = (game: GameState, nowSeconds: number) => {
   if (game.stageIndex >= getStageCount() - 1) {
     game.mode = "result";
@@ -103,10 +74,6 @@ const completeStage = (game: GameState, nowSeconds: number) => {
   game.modeStartedAtSeconds = nowSeconds;
 };
 
-/**
- * StageTransition完了後に次のStageとPlayerを新規作成する．
- * Stage番号を1つ進め，選択中キャラクターを維持したままgameモードへ戻す．
- */
 const startNextStage = (game: GameState, nowSeconds: number) => {
   game.stageIndex += 1;
   game.stage = createStage(game.stageIndex);
@@ -115,10 +82,6 @@ const startNextStage = (game: GameState, nowSeconds: number) => {
   game.modeStartedAtSeconds = nowSeconds;
 };
 
-/**
- * Gameモードの1回分のSimulationを実行する．
- * Block，Enemy，Playerの順に更新し，Stage完了とPlayer・Enemyの表示矩形衝突を判定する．
- */
 const updateActiveGameStep = (
   game: GameState,
   moveDirection: Direction | null,
@@ -169,11 +132,6 @@ const updateActiveGameStep = (
   return events;
 };
 
-/**
- * GameStateを現在モードに応じて時間更新する．
- * StageTransition中はSimulationを停止し，game中だけBlock，Enemy，Playerを最大追従時間内で進める．
- * 実時間の経過はelapsedSecondsへ記録し，長時間停止分のSimulationは制限する．
- */
 export const updateGame = (
   game: GameState,
   moveDirection: Direction | null,
@@ -184,7 +142,6 @@ export const updateGame = (
   const events: GameSignal[] = [];
   const elapsedDelta = Math.max(0, deltaSeconds);
   if (game.mode === "stageTransition") {
-    // 進行度を別状態にせず，モード開始時刻と固定時間の差だけで遷移を確定する．
     if (
       nowSeconds - game.modeStartedAtSeconds + EPS >=
       gameConfig.action.stageTransitionSeconds
@@ -197,7 +154,7 @@ export const updateGame = (
 
   game.elapsedSeconds += elapsedDelta;
 
-  // 長時間停止後は実時間だけを記録し，シミュレーションの追いつき量を制限する．
+  // タブ復帰時などに、止まっていた分までゲームが一気に進まないようにする。
   const simulationDelta = Math.min(
     elapsedDelta,
     gameConfig.simulation.maximumCatchUpSeconds,
@@ -218,7 +175,7 @@ export const updateGame = (
     return events;
   }
 
-  // Actor同士の途中交差も判定するため，長いフレームを固定幅で更新する．
+  // すれ違いを見逃さないよう、長いフレームは小刻みに処理する。
   let remainingSeconds = simulationDelta;
   let currentSeconds = nowSeconds - simulationDelta;
   while (remainingSeconds > EPS && game.mode === "game") {

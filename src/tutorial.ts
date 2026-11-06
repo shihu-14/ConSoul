@@ -37,7 +37,6 @@ export const createTutorial = (): TutorialState => ({
   overlay: null,
 });
 
-/** Stage 1の現在の所持状態に合わせて、初回の案内先を選ぶ。 */
 export const beginTutorial = (
   tutorial: TutorialState,
   game: GameState,
@@ -63,7 +62,6 @@ export const beginTutorial = (
   };
 };
 
-/** 成功したPushを記録し、Stage 1の対象Blockが動けば案内を完了する。 */
 export const observeTutorialPush = (
   tutorial: TutorialState,
   game: GameState,
@@ -90,7 +88,6 @@ export const endTutorialGuidance = (tutorial: TutorialState): void => {
   tutorial.guidance = null;
 };
 
-/** 最初の取得後は納品場所へ切り替え、最初の納品で案内を終える。 */
 export const observeTutorialEvents = (
   tutorial: TutorialState,
   game: GameState,
@@ -143,7 +140,6 @@ const canPromptPush = (tutorial: TutorialState, game: GameState): boolean =>
       ),
   );
 
-/** 対象Blockへの接近と追跡中の操作案内を更新する。 */
 export const updateTutorial = (
   tutorial: TutorialState,
   game: GameState,

@@ -1,7 +1,3 @@
-/**
- * 実行時StageStateの元となる不変のStage定義．
- */
-
 export type StageEnemySource =
   | {
       readonly type: "random";
@@ -208,24 +204,3 @@ export const stageSources = [
     ],
   },
 ] as const;
-
-// ####################
-// #..................#
-// #.B.BB.B.B.BB.B.BB.#
-// #.B.B..B.B..B.B..B.#
-// #........BB.B.BB...#
-// #.BBB.BB.B.......B.#
-// #.B...BB...BB.BB.B.#
-// #.B.B....B.B.......#
-// #.B.B.B.BB.B.BBB.B.#
-// #.B...B..B...B...B.#
-// #...B..B...B...BBB.#
-// #.BBBB...BBBBB.B...#
-// #...B..B.......B.B.#
-// #.B...BB.B.BBB.B.B.#
-// #.B.B....B.B.......#
-// #...B.B.BB.B.BBBBB.#
-// #.BBB.B..........B.#
-// #.B...BBB.B.BBBB.B.#
-// #..................#
-// ####################

@@ -58,7 +58,6 @@ const drawKeyHint = (
   context.drawImage(getImage("keySpace"), iconX, iconY, iconSize, iconSize);
 };
 
-/** ゲーム画面の上に一時的な案内を描画し、GameStateは変更しない。 */
 export const renderTutorial = (
   game: GameState,
   context: CanvasRenderingContext2D,

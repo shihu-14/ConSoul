@@ -1,7 +1,3 @@
-/**
- * プレイヤーの連続移動，Dash，Energy，アイテム移動，Action選択を処理する．
- */
-
 import {
   gameConfig,
   getPlayerDashSpeedTilesPerSecond,
@@ -20,10 +16,6 @@ import {
 
 const EPS = 1e-8;
 
-/**
- * Playerの初期状態を作成する．
- * logicalPositionを移動完了済みの整数セル座標として複製し，方向は右向き，移動状態は未開始，Energyは最大値，所持アイテムは空で初期化する．
- */
 export const createPlayer = (
   characterType: CharacterType,
   logicalPosition: Readonly<Position>,
@@ -36,10 +28,6 @@ export const createPlayer = (
   heldItems: [],
 });
 
-/**
- * Playerが現在いる整数セルに残っているItemを取得する．
- * 取得したItemはStageのremainingItemsから同じオブジェクトのまま取り除き，PlayerのheldItemsへ移動する．
- */
 const collectItems = (player: PlayerState, stage: StageState) => {
   const collected = stage.remainingItems.filter((item) =>
     positionsEqual(player.position, item.position),
@@ -53,10 +41,6 @@ const collectItems = (player: PlayerState, stage: StageState) => {
   return true;
 };
 
-/**
- * PlayerがPostの整数セルに到達したとき，所持中のItemを一括で納品する．
- * 納品後はPlayerのheldItemsを空にし，StageのdeliveredItemsへ同じItemオブジェクトを移動する．
- */
 const deliverItems = (player: PlayerState, stage: StageState) => {
   if (
     player.heldItems.length === 0 ||
@@ -69,25 +53,16 @@ const deliverItems = (player: PlayerState, stage: StageState) => {
   return true;
 };
 
-/**
- * deltaSecondsを負数補正してPlayerのEnergyを回復する．
- * PlayerのEnergyだけを最大値まで更新し，最大値を超えない不変条件を守る．
- */
 const recoverPlayerEnergy = (
   player: PlayerState,
   deltaSeconds: number,
 ): void => {
-  const elapsedSeconds = Math.max(0, deltaSeconds);
   player.energy = Math.min(
     gameConfig.energy.maximum,
-    player.energy + elapsedSeconds * gameConfig.energy.recoveryPerSecond,
+    player.energy + deltaSeconds * gameConfig.energy.recoveryPerSecond,
   );
 };
 
-/**
- * 現在セルのItem取得とPost納品を順序どおり解決する．
- * StageとPlayerのItem配列を更新し，発生した処理ごとにGameSignalを追加する．
- */
 const resolvePlayerItems = (
   player: PlayerState,
   stage: StageState,
@@ -97,10 +72,6 @@ const resolvePlayerItems = (
   if (deliverItems(player, stage)) signals.push({ type: "itemDeliver" });
 };
 
-/**
- * 歩行距離の境界通過時だけ歩行と軋みのGameSignalを発生させる．
- * 歩行以外の移動，特にDashではSignalを発生させず，既存のSignal配列だけを追加更新する．
- */
 const emitPlayerWalkSignals = (
   movement: PlayerState["movement"],
   previousElapsedDistance: number,
@@ -125,10 +96,6 @@ const emitPlayerWalkSignals = (
   }
 };
 
-/**
- * 入力方向を固定して壁判定，elapsedDistance，セル境界，Dash残りセル，残り時間を処理する．
- * 移動状態とSignal配列を更新し，PlayerのlogicalPositionはセル完了時だけ更新する不変条件を守る．
- */
 const advancePlayerMovement = (
   player: PlayerState,
   stage: StageState,
@@ -137,7 +104,7 @@ const advancePlayerMovement = (
   signals: GameSignal[],
   random: () => number,
 ): void => {
-  let remainingSeconds = Math.max(0, deltaSeconds);
+  let remainingSeconds = deltaSeconds;
   let evaluateInput = true;
   while (evaluateInput || remainingSeconds > EPS) {
     evaluateInput = false;
@@ -168,7 +135,7 @@ const advancePlayerMovement = (
     const distanceToNextCell = 1 - movement.elapsedDistance;
     const distance = Math.min(speed * remainingSeconds, distanceToNextCell);
     movement.elapsedDistance += distance;
-    remainingSeconds = Math.max(0, remainingSeconds - distance / speed);
+    remainingSeconds -= distance / speed;
 
     emitPlayerWalkSignals(
       movement,
@@ -195,12 +162,7 @@ const advancePlayerMovement = (
   }
 };
 
-/**
- * Playerの通常歩行とDashを時間経過分だけ進める．
- * 移動中のdirectionはセル境界まで固定し，次のセルへ進む直前だけ新しい入力方向を採用する．
- * logicalPositionはセル境界で整数更新し，セル途中のdisplayPositionはmovement.elapsedDistanceからRendererが導出する．
- * Energy回復と現在セルのItem効果を解決してから移動を進める．
- */
+// 移動中の方向は，次のセルに着くまで変えない．
 export const updatePlayer = (
   player: PlayerState,
   stage: StageState,
@@ -222,16 +184,11 @@ export const updatePlayer = (
   return signals;
 };
 
-/**
- * Space相当の1回のActionを処理する．
- * 歩行中は現在方向のDashへ切り替え，Dash中は無視する．停止中は接触BlockのPushを優先する．
- */
 export const performPlayerAction = (
   player: PlayerState,
   stage: StageState,
   direction: Direction,
 ) => {
-  // Dash中の方向変更や二重開始を防ぐ．
   if (player.movement?.type === "dash") return "ignored" as const;
   if (player.movement?.type === "walk") {
     if (player.energy < gameConfig.energy.dashCost) {
@@ -251,7 +208,7 @@ export const performPlayerAction = (
     stage.blocks,
     direction,
   );
-  // Playerに接するBlockがある場合は，DashではなくPush判定を優先する．
+  // 墓石に触れているときは，ダッシュよりPushを優先．
   if (touchingBlock) {
     if (player.energy < gameConfig.energy.pushCost) {
       return "insufficientEnergy" as const;
@@ -266,11 +223,10 @@ export const performPlayerAction = (
   if (player.energy < gameConfig.energy.dashCost) {
     return "insufficientEnergy" as const;
   }
-  // Dash開始時点で次セルが塞がっている場合は，移動もEnergy消費も発生しない．
   if (isCellBlocked(stage, getNextPosition(player.position, direction))) {
     return "blocked" as const;
   }
-  // Dashの速度は開始時のキャラクターから決まり，Item取得後もDash中は変化しない．
+  // ダッシュ中はアイテムの重さを反映しない．
   player.movement = {
     type: "dash",
     elapsedDistance: 0,

@@ -1,7 +1,3 @@
-/**
- * Chase Enemyの検知，Alert，追跡方向決定を処理する．
- */
-
 import {
   chooseRandom,
   chooseRandomDirection,
@@ -20,10 +16,6 @@ import { EnemyState, PlayerState, StageState } from "../types";
 
 type ChaseEnemy = Extract<EnemyState, { type: "chase" }>;
 
-/**
- * Chase中の初動方向をBlock考慮BFSの最短方向から選択する．
- * 交差点でだけchaseProbabilityを使い，一本道では最短方向を優先する．
- */
 const chooseChaseDirection = (
   enemy: ChaseEnemy,
   player: PlayerState,
@@ -46,7 +38,7 @@ const chooseChaseDirection = (
   const alternatives = nonReverseLegal.filter(
     (direction) => !shortest.includes(direction),
   );
-  // Chase精度は選択肢が分かれる交差点だけに適用し，一本道では必ず最短方向へ進む．
+  // 追跡率は，別ルートを選べる交差点でだけ使う．
   if (
     nonReverseLegal.length > 1 &&
     alternatives.length > 0 &&
@@ -57,9 +49,6 @@ const chooseChaseDirection = (
   return chooseRandom(shortest, random);
 };
 
-/**
- * Chase Enemyの現在状態とPlayerの位置から次の方向またはAlert状態を決定する．
- */
 const chooseChaseDirectionAtCell: EnemyBehavior<ChaseEnemy>["chooseDirectionAtCell"] =
   (enemy, player, stage, random) => {
     if (!isDetected(enemy, player)) {
