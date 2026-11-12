@@ -14,7 +14,7 @@ import {
   getChaseSpeedTilesPerSecond,
   getEnemySpeedTilesPerSecond,
 } from "../shared";
-import { findShortestDirections } from "../pathfinding";
+import { findShortestDirections } from "./pathfinding";
 
 type ChaseEnemy = Extract<EnemyState, { type: "chase" }>;
 

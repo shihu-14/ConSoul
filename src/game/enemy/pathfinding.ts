@@ -3,7 +3,7 @@ import {
   Position,
   StageState,
   getBlockedCellKeys,
-} from "./shared";
+} from "../shared";
 
 const steps: ReadonlyArray<{
   direction: Direction;
