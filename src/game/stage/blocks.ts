@@ -8,7 +8,7 @@ import {
   getNextPosition,
   isBoundaryBlock,
   positionsEqual,
-} from "./shared";
+} from "../shared";
 
 const EPS = 1e-8;
 

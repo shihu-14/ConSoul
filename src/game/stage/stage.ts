@@ -3,12 +3,12 @@ import {
   EnemyState,
   Position,
   StageState,
-} from "./shared";
+} from "../shared";
 import {
   stageSources,
   type StageEnemySource,
   type StageSource,
-} from "./stageSources";
+} from "./sources";
 
 const WIDTH = 20;
 const HEIGHT = 20;

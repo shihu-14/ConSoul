@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createStage, getStageCount, validateStages } from "../stage";
-import { StageSource } from "../stageSources";
+import {
+  StageSource,
+  createStage,
+  getStageCount,
+  validateStages,
+} from ".";
 
 describe("stage", () => {
   it("creates independent state from a valid source", () => {

@@ -12,7 +12,7 @@ import {
   isCellBlocked,
   positionsEqual,
 } from "./shared";
-import { findTouchingBlock, tryStartPush } from "./block";
+import { findTouchingBlock, tryStartPush } from "./stage";
 
 const EPS = 1e-8;
 

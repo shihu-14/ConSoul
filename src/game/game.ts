@@ -1,7 +1,6 @@
 import { updateEnemies } from "./enemy";
-import { updateBlocks } from "./block";
 import { createPlayer, performPlayerAction, updatePlayer } from "./player";
-import { createStage, getStageCount } from "./stage";
+import { createStage, getStageCount, updateBlocks } from "./stage";
 import {
   CharacterType,
   Direction,
