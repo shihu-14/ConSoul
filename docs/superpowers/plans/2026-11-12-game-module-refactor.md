@@ -6,7 +6,7 @@
 
 **Architecture:** ゲーム外の層は`src/game/index.ts`だけを参照し，ゲーム内部は各モジュールの`index.ts`を介して一方向に依存する．共有状態型と汎用盤面処理は`shared/`，Player固有処理は`player/`，敵固有処理は`enemy/`，Stage生成と墓石処理は`stage/`に置き，ルート`game.ts`は調停だけを担う．
 
-**Tech Stack:** TypeScript 5.9，Vite 8，Vitest 5.1，ESLint 8，Prettier 3
+**Tech Stack:** TypeScript 5.9，Vite 8，Vitest 4.1，ESLint 8，Prettier 3
 
 **Spec:** `docs/superpowers/specs/2026-11-12-game-module-refactor-design.md`
 
@@ -48,7 +48,7 @@
 
 - [ ] **Step 1: Install the test runner and add the test script**
 
-Run: `npm install --save-dev vitest@5.1.0`
+Run: `npm install --save-dev vitest@4.1.12`
 
 Add to `package.json` scripts: `"test": "vitest run"`.
 
