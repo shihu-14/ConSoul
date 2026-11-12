@@ -1,9 +1,4 @@
-import {
-  Direction,
-  Position,
-  StageState,
-  getBlockedCellKeys,
-} from "../shared";
+import { Direction, Position, StageState, getBlockedCellKeys } from "../shared";
 
 const steps: ReadonlyArray<{
   direction: Direction;

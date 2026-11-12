@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createGame,
-  gameConfig,
-  retryStage,
-  startGame,
-  updateGame,
-} from ".";
+import { createGame, gameConfig, retryStage, startGame, updateGame } from ".";
 
 describe("game lifecycle", () => {
   it("starts, retries, and advances to the next stage", () => {

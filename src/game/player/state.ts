@@ -1,9 +1,4 @@
-import {
-  CharacterType,
-  PlayerState,
-  Position,
-  gameConfig,
-} from "../shared";
+import { CharacterType, PlayerState, Position, gameConfig } from "../shared";
 
 export const createPlayer = (
   characterType: CharacterType,

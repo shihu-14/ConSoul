@@ -4,11 +4,7 @@ import {
   gameConfig,
   getPlayerSpeedTilesPerSecond,
 } from "../shared";
-import {
-  createPlayer,
-  performPlayerAction,
-  updatePlayer,
-} from ".";
+import { createPlayer, performPlayerAction, updatePlayer } from ".";
 
 const createEmptyStage = (): StageState => ({
   width: 6,

@@ -1,9 +1,4 @@
-import {
-  BlockState,
-  EnemyState,
-  Position,
-  StageState,
-} from "../shared";
+import { BlockState, EnemyState, Position, StageState } from "../shared";
 import {
   stageSources,
   type StageEnemySource,

@@ -33,6 +33,7 @@
 ### Task 1: Add behavior-preserving regression coverage
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `package-lock.json`
 - Create: `src/game/game.test.ts`
@@ -41,6 +42,7 @@
 - Create: `src/game/enemy/enemy.test.ts`
 
 **Interfaces:**
+
 - Consumes: 現在の`createGame`，`startGame`，`retryStage`，`returnToTitle`，`updateGame`，`createPlayer`，`updatePlayer`，`performPlayerAction`，`createStage`，`getStageCount`，`validateStages`，`findTouchingBlock`，`tryStartPush`，`updateBlocks`，`updateEnemies`．
 - Produces: `npm test`で実行できる回帰テスト群．以降の全Taskはこのテストを変更後も通す．
 
@@ -75,13 +77,17 @@ Add `caps catch-up simulation while preserving elapsed time` using a custom empt
 In `src/game/player/player.test.ts`, cover:
 
 ```ts
-expect(updatePlayer(player, stage, "right", oneCellSeconds, () => 1)).toContainEqual({
+expect(
+  updatePlayer(player, stage, "right", oneCellSeconds, () => 1),
+).toContainEqual({
   type: "itemPickup",
 });
 expect(player.position).toEqual({ x: 2, y: 1 });
 expect(player.heldItems).toHaveLength(1);
 
-expect(updatePlayer(player, stage, "right", carriedOneCellSeconds, () => 1)).toContainEqual({
+expect(
+  updatePlayer(player, stage, "right", carriedOneCellSeconds, () => 1),
+).toContainEqual({
   type: "itemDeliver",
 });
 expect(player.heldItems).toEqual([]);
@@ -96,7 +102,9 @@ In `src/game/stage/stage.test.ts`, assert:
 
 ```ts
 expect(createStage(0)).not.toBe(createStage(0));
-expect(createStage(0).blocks.every((block) => block.movement === null)).toBe(true);
+expect(createStage(0).blocks.every((block) => block.movement === null)).toBe(
+  true,
+);
 expect(validateStages()).toEqual([]);
 expect(() => createStage(getStageCount())).toThrow("は存在しません");
 ```
@@ -134,6 +142,7 @@ Expected: PASS. `npm run format:check` is expected to continue reporting only th
 ### Task 2: Establish shared contracts and the root public API
 
 **Files:**
+
 - Create: `src/game/shared/index.ts`
 - Create: `src/game/shared/types.ts`
 - Create: `src/game/shared/config.ts`
@@ -157,6 +166,7 @@ Expected: PASS. `npm run format:check` is expected to continue reporting only th
 - Modify: `src/game/game.test.ts`
 
 **Interfaces:**
+
 - Consumes: 既存の共有型，設定値，Signal，座標・衝突関数を挙動変更なしで移す．
 - Produces: `shared/index.ts`から`Direction`，`CharacterType`，`Mode`，`Position`，`Item`，全State型，`GameSignal`，`gameConfig`，全速度関数，盤面関数をexportする．`game/index.ts`はゲーム外に必要な機能だけを再exportする．
 
@@ -198,6 +208,7 @@ Expected: PASS with no import of the deleted paths.
 ### Task 3: Move Stage and block behavior behind the Stage API
 
 **Files:**
+
 - Create: `src/game/stage/index.ts`
 - Create: `src/game/stage/stage.ts`
 - Create: `src/game/stage/sources.ts`
@@ -210,6 +221,7 @@ Expected: PASS with no import of the deleted paths.
 - Modify: `src/game/stage/stage.test.ts`
 
 **Interfaces:**
+
 - Consumes: `StageState`，`BlockState`，`Position`，`Direction`，盤面関数，`gameConfig`を`shared/index.ts`から取得する．`StageSource`と`StageEnemySource`は`stage/sources.ts`が所有する．
 - Produces: `createStage(stageIndex: number): StageState`，`getStageCount(): number`，`validateStages(sources?: readonly StageSource[]): string[]`，`findTouchingBlock(position: Readonly<Position>, blocks: readonly BlockState[], direction: Direction, excluded?: ReadonlySet<BlockState>): BlockState | undefined`，`tryStartPush(stage: StageState, direction: Direction, firstBlock: BlockState): boolean`，`updateBlocks(stage: StageState, deltaSeconds: number): void`．
 
@@ -238,6 +250,7 @@ Expected: PASS; root `stage.ts`, `stageSources.ts`, and `block.ts` no longer exi
 ### Task 4: Contain Enemy-specific helpers inside the Enemy module
 
 **Files:**
+
 - Create: `src/game/enemy/pathfinding.ts`
 - Delete: `src/game/pathfinding.ts`
 - Modify: `src/game/enemy/index.ts`
@@ -249,6 +262,7 @@ Expected: PASS; root `stage.ts`, `stageSources.ts`, and `block.ts` no longer exi
 - Modify: `src/game/enemy/enemy.test.ts`
 
 **Interfaces:**
+
 - Consumes: State型，設定，Signal，盤面関数を`../shared`から取得する．
 - Produces: `enemy/index.ts`の公開APIは`updateEnemies(stage: StageState, player: PlayerState, deltaSeconds: number, random?: () => number): GameSignal[]`だけ．`EnemyBehavior`，行動実装，乱数選択，視線判定，経路探索はモジュール内部に留める．
 
@@ -269,6 +283,7 @@ Expected: PASS and `src/game/pathfinding.ts` is absent.
 ### Task 5: Split Player by responsibility
 
 **Files:**
+
 - Create: `src/game/player/index.ts`
 - Create: `src/game/player/state.ts`
 - Create: `src/game/player/inventory.ts`
@@ -279,6 +294,7 @@ Expected: PASS and `src/game/pathfinding.ts` is absent.
 - Modify: `src/game/player/player.test.ts`
 
 **Interfaces:**
+
 - Consumes: State型，設定，Signal，盤面関数を`../shared`から取得し，Push開始処理を`../stage`の公開APIから取得する．
 - Produces: `createPlayer(characterType: CharacterType, logicalPosition: Readonly<Position>): PlayerState`，`updatePlayer(player: PlayerState, stage: StageState, moveDirection: Direction | null, deltaSeconds: number, random?: () => number): GameSignal[]`，`performPlayerAction(player: PlayerState, stage: StageState, direction: Direction): "ignored" | "insufficientEnergy" | "blocked" | "push" | "dash"`．
 
@@ -311,10 +327,12 @@ Expected: PASS; no production file imports a Player internal implementation dire
 ### Task 6: Audit module boundaries and remove leftovers
 
 **Files:**
+
 - Modify: any `src/**/*.ts` files still violating the public API boundary
 - Delete: any obsolete source files revealed by the audit
 
 **Interfaces:**
+
 - Consumes: the final module tree and all TypeScript import declarations.
 - Produces: a clean module tree with no external deep imports, cross-module internal imports, compatibility shims, or obsolete files.
 
@@ -339,9 +357,11 @@ Expected: all commands PASS.
 ### Task 7: Final validation and single build
 
 **Files:**
+
 - Modify: only files required by failures found during final verification
 
 **Interfaces:**
+
 - Consumes: completed refactor and regression suite.
 - Produces: buildable application with documented verification evidence and no obsolete code.
 

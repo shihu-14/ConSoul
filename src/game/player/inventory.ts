@@ -1,9 +1,4 @@
-import {
-  GameSignal,
-  PlayerState,
-  StageState,
-  positionsEqual,
-} from "../shared";
+import { GameSignal, PlayerState, StageState, positionsEqual } from "../shared";
 
 const collectItems = (player: PlayerState, stage: StageState) => {
   const collected = stage.remainingItems.filter((item) =>

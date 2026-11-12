@@ -1,10 +1,5 @@
 import { EnemyBehavior } from "./common";
-import {
-  Direction,
-  EnemyState,
-  StageState,
-  isCellBlocked,
-} from "../shared";
+import { Direction, EnemyState, StageState, isCellBlocked } from "../shared";
 
 type PatrolEnemy = Extract<EnemyState, { type: "patrol" }>;
 

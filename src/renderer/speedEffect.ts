@@ -53,7 +53,7 @@ const getEmitterPosition = (
   };
 };
 
-// 煙の状態は見た目だけのものなので、ゲーム状態には入れない。
+// 煙の状態は見た目だけのものなので，ゲーム状態には入れない．
 export const createSpeedEffectRenderer = () => {
   const actorStates = new WeakMap<object, ActorEffectState>();
 
@@ -90,7 +90,7 @@ export const createSpeedEffectRenderer = () => {
       let distanceToNextEmission =
         EMISSION_DISTANCE_TILES - state.distanceSinceEmission;
 
-      // フレームレートに関係なく、同じ移動距離ごとに煙を出す。
+      // フレームレートに関係なく，同じ移動距離ごとに煙を出す．
       while (distance >= distanceToNextEmission) {
         const progress = distanceToNextEmission / distance;
         emitPuff(

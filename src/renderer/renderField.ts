@@ -30,7 +30,7 @@ const getBlockSprites = (block: BlockState) => {
   return selected;
 };
 
-// リトライで墓石の見た目まで変わらないようにする。
+// リトライで墓石の見た目まで変わらないようにする．
 export const preserveBlockSpritesOnRetry = (
   previousBlocks: readonly BlockState[],
   freshBlocks: readonly BlockState[],
@@ -55,7 +55,7 @@ export const renderField = (
   const cellSize = getCellSize(game);
   for (let logicalY = 0; logicalY < game.stage.height; logicalY += 1) {
     for (let logicalX = 0; logicalX < game.stage.width; logicalX += 1) {
-      // 描き直すたびに床が変わらないよう、座標だけで種類を決める。
+      // 描き直すたびに床が変わらないよう，座標だけで種類を決める．
       const floorVariant = Math.floor(
         Math.abs(Math.sin(logicalX * 12.9898 + logicalY * 78.233) % 1) * 4,
       );
@@ -85,7 +85,7 @@ export const renderField = (
         candidate.position.y === block.position.y + 1,
     );
     const endPosition = getHorizontalEndPosition(block);
-    // 横押し中だけ、移動先の墓石との重なりを先に反映する。
+    // 横押し中だけ，移動先の墓石との重なりを先に反映する．
     const horizontalFrontChange =
       isMovingHorizontally(block) ||
       game.stage.blocks.some(

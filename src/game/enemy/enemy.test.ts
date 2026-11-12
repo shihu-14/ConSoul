@@ -31,12 +31,7 @@ describe("enemy", () => {
     ]);
     expect(enemy.type === "chase" && enemy.mode).toBe("alert");
 
-    updateEnemies(
-      stage,
-      player,
-      gameConfig.enemy.chaseAlertSeconds,
-      () => 0,
-    );
+    updateEnemies(stage, player, gameConfig.enemy.chaseAlertSeconds, () => 0);
     expect(enemy.type === "chase" && enemy.mode).toBe("chase");
   });
 });

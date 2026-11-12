@@ -99,7 +99,7 @@ const connectWalkingGain = (audio: HTMLAudioElement) => {
   amplifiedSfxNodes.set(audio, { source, gain });
 };
 
-// ブラウザー側の設定で再生を拒否されることがある。
+// ブラウザー側の設定で再生を拒否されることがある．
 const startAudio = (
   audio: HTMLAudioElement,
   onRejected?: () => void,
@@ -145,7 +145,7 @@ export const stopAllAudio = () => {
   stopAllSfx();
 };
 
-// 同じ効果音が重なってもよいように、Audio要素を少数だけ使い回す。
+// 同じ効果音が重なってもよいように，Audio要素を少数だけ使い回す．
 const getSfxVoice = (id: SfxId) => {
   const voices = sfxVoices.get(id) ?? [];
   const available = voices.find((audio) => !activeSfx.has(audio));

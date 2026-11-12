@@ -32,7 +32,7 @@ const drawFullScreenImage = (
   return { offsetX, imageScale: height / image.height };
 };
 
-// 元画像の番号を隠し、選択用の番号を上から重ねる。
+// 元画像の番号を隠し，選択用の番号を上から重ねる．
 export const renderTitle = (context: CanvasRenderingContext2D) => {
   const titleImage = getImage("title");
   const selectionNumbersImage = getImage("titleSelectionNumbers");
