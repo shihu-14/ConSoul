@@ -1,5 +1,5 @@
 import { GameState, getStageCount } from "../game";
-import { getImage } from "./assets";
+import { drawItem, getImage } from "./assets";
 import {
   ACTION_ICON_SIZE,
   HUD_WIDTH,
@@ -12,8 +12,14 @@ import {
   PANEL_HEIGHT,
   PANEL_PADDING,
   PANEL_Y,
-} from "./gameLayout";
-import { drawItem } from "./renderItems";
+} from "./layout";
+
+const INVENTORY_SLOT_GAP = 10;
+const INVENTORY_SLOT_MAX_SIZE = 58;
+const INVENTORY_SLOT_PADDING = 8;
+const INVENTORY_SLOT_RADIUS = 8;
+const INVENTORY_SLOT_Y_OFFSET = 50;
+const CONTROL_LABEL_GAP = 27;
 
 const movementIcons = [
   "keyArrowUp",
@@ -61,26 +67,30 @@ const drawInventory = (
     game.stage.remainingItems.length +
     game.player.heldItems.length +
     game.stage.deliveredItems.length;
-  const slotGap = 10;
   const slotSize = Math.min(
-    58,
-    (HUD_WIDTH - 2 * PANEL_PADDING - (slotCount - 1) * slotGap) / slotCount,
+    INVENTORY_SLOT_MAX_SIZE,
+    (HUD_WIDTH - 2 * PANEL_PADDING - (slotCount - 1) * INVENTORY_SLOT_GAP) /
+      slotCount,
   );
-  const slotsWidth = slotCount * slotSize + (slotCount - 1) * slotGap;
+  const slotsWidth =
+    slotCount * slotSize + (slotCount - 1) * INVENTORY_SLOT_GAP;
   const firstSlotX = HUD_X + (HUD_WIDTH - slotsWidth) / 2;
-  const slotY = INVENTORY_Y + 50;
+  const slotY = INVENTORY_Y + INVENTORY_SLOT_Y_OFFSET;
   for (let index = 0; index < slotCount; index += 1) {
-    const slotX = firstSlotX + index * (slotSize + slotGap);
+    const slotX = firstSlotX + index * (slotSize + INVENTORY_SLOT_GAP);
     context.fillStyle = "#353a57";
     context.strokeStyle = "#69718b";
     context.lineWidth = 2;
     context.beginPath();
-    context.roundRect(slotX, slotY, slotSize, slotSize, 8);
+    context.roundRect(slotX, slotY, slotSize, slotSize, INVENTORY_SLOT_RADIUS);
     context.fill();
     context.stroke();
     const item = game.player.heldItems[index];
     if (item) {
-      const itemSize = Math.min(ITEM_ICON_SIZE, slotSize - 8);
+      const itemSize = Math.min(
+        ITEM_ICON_SIZE,
+        slotSize - INVENTORY_SLOT_PADDING,
+      );
       drawItem(
         context,
         item,
@@ -119,11 +129,10 @@ const drawControls = (context: CanvasRenderingContext2D): void => {
   });
   context.textAlign = "center";
   context.font = "bold 20px sans-serif";
-  const iconLabelGap = 27;
   const movementBottom = movementY + 2 * MOVEMENT_ICON_SIZE + KEY_ICON_GAP;
-  context.fillText("MOVE", movementCenterX, movementBottom + iconLabelGap);
+  context.fillText("MOVE", movementCenterX, movementBottom + CONTROL_LABEL_GAP);
   const actionIconBottom = PANEL_Y + 304;
-  const actionLabelY = actionIconBottom + iconLabelGap;
+  const actionLabelY = actionIconBottom + CONTROL_LABEL_GAP;
   const spaceCenterX = centerX - 75;
   const resetCenterX = centerX + 75;
   const resetIconSize = 64;

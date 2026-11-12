@@ -1,7 +1,14 @@
 import { GameState, getDisplayPosition } from "../game";
 import { TutorialGuidance, TutorialOverlay } from "../tutorial";
 import { getImage } from "./assets";
-import { FIELD_SIZE, getCellSize } from "./gameLayout";
+import { FIELD_SIZE, getCellSize } from "./layout";
+import { getPlayerEnergyBarLayout } from "./player";
+
+const GUIDANCE_BOB_FREQUENCY = Math.PI * 3;
+const GUIDANCE_BOB_TILES = 0.07;
+const GUIDANCE_ARROW_WIDTH_TILES = 0.68;
+const GUIDANCE_ARROW_HEIGHT_TILES = 0.5;
+const KEY_HINT_SIZE_TILES = 1.5;
 
 const drawGuidance = (
   game: GameState,
@@ -11,9 +18,12 @@ const drawGuidance = (
 ): void => {
   const cellSize = getCellSize(game);
   const centerX = (guidance.target.x + 0.5) * cellSize;
-  const bob = Math.sin(nowSeconds * Math.PI * 3) * cellSize * 0.07;
-  const arrowWidth = cellSize * 0.68;
-  const arrowHeight = cellSize * 0.5;
+  const bob =
+    Math.sin(nowSeconds * GUIDANCE_BOB_FREQUENCY) *
+    cellSize *
+    GUIDANCE_BOB_TILES;
+  const arrowWidth = cellSize * GUIDANCE_ARROW_WIDTH_TILES;
+  const arrowHeight = cellSize * GUIDANCE_ARROW_HEIGHT_TILES;
   context.fillStyle = "#fbbf24";
   context.strokeStyle = "#1b1b1b";
   context.lineWidth = Math.max(2, cellSize * 0.06);
@@ -42,18 +52,16 @@ const drawKeyHint = (
     player.movement ? player.direction : null,
     player.movement?.elapsedDistance ?? 0,
   );
-  const iconSize = cellSize * 1.5;
+  const iconSize = cellSize * KEY_HINT_SIZE_TILES;
   const centerX = (displayPosition.x + 0.5) * cellSize;
   const iconX = Math.max(
     0,
     Math.min(FIELD_SIZE - iconSize, centerX - iconSize / 2),
   );
-  const barHeight = Math.max(5, cellSize * 0.12);
-  const barY = Math.max(
-    2,
-    displayPosition.y * cellSize - barHeight - cellSize * 0.08,
+  const iconY = Math.max(
+    0,
+    getPlayerEnergyBarLayout(game, displayPosition).y - iconSize,
   );
-  const iconY = Math.max(0, barY - iconSize);
   context.drawImage(getImage("keySpace"), iconX, iconY, iconSize, iconSize);
 };
 

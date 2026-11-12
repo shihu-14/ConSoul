@@ -17,14 +17,13 @@ import {
   startGame,
   updateGame,
 } from "./game";
-import { preserveBlockSpritesOnRetry } from "./renderer/renderField";
-import { renderGame } from "./renderer/renderGame";
-import { renderTutorial } from "./renderer/renderTutorial";
 import {
+  renderGame,
   renderGameOver,
   renderResult,
   renderTitle,
-} from "./renderer/renderScreens";
+  renderTutorial,
+} from "./renderer";
 import {
   beginTutorial,
   clearTutorialHint,
@@ -71,9 +70,7 @@ registerInput({
   },
   onRetry: () => {
     const nowSeconds = getNowSeconds();
-    const previousBlocks = game.stage.blocks;
     if (retryStage(game, nowSeconds)) {
-      preserveBlockSpritesOnRetry(previousBlocks, game.stage.blocks);
       beginTutorial(tutorial, game);
       stopAllSfx();
       resetInput();

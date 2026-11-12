@@ -20,6 +20,20 @@ import keyRSrc from "../assets/images/key-r.png";
 import keySSrc from "../assets/images/key-s.png";
 import keySpaceSrc from "../assets/images/key-space.png";
 import keyWSrc from "../assets/images/key-w.png";
+import { Direction, Item } from "../game";
+
+const SOURCE_TILE_SIZE = 64;
+const ITEM_VARIANT_COUNT = 3;
+
+const directionSources: Record<
+  Direction,
+  readonly [number, number, number, number]
+> = {
+  up: [64, 0, SOURCE_TILE_SIZE, SOURCE_TILE_SIZE],
+  down: [128, 0, SOURCE_TILE_SIZE, SOURCE_TILE_SIZE],
+  left: [0, 0, SOURCE_TILE_SIZE, SOURCE_TILE_SIZE],
+  right: [192, 0, SOURCE_TILE_SIZE, SOURCE_TILE_SIZE],
+};
 
 const createImage = (source: string) => {
   const image = new Image();
@@ -53,3 +67,27 @@ const images = {
 };
 
 export const getImage = (id: keyof typeof images) => images[id];
+
+export const getDirectionSource = (direction: Direction) =>
+  directionSources[direction];
+
+export const drawItem = (
+  context: CanvasRenderingContext2D,
+  item: Item,
+  displayX: number,
+  displayY: number,
+  width: number,
+  height: number,
+): void => {
+  context.drawImage(
+    getImage("item"),
+    (item.kind % ITEM_VARIANT_COUNT) * SOURCE_TILE_SIZE + SOURCE_TILE_SIZE,
+    0,
+    SOURCE_TILE_SIZE,
+    SOURCE_TILE_SIZE,
+    displayX,
+    displayY,
+    width,
+    height,
+  );
+};
