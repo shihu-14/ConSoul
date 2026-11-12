@@ -52,7 +52,13 @@ describe("player", () => {
 
   it("prioritizes pushing a touching block over dashing", () => {
     const stage = createEmptyStage();
-    stage.blocks = [{ position: { x: 2, y: 1 }, movement: null }];
+    stage.blocks = [
+      {
+        position: { x: 2, y: 1 },
+        sprite: { wallIndex: 0, mossIndex: 0 },
+        movement: null,
+      },
+    ];
     const player = createPlayer("student", stage.playerStart);
 
     expect(performPlayerAction(player, stage, "right")).toBe("push");

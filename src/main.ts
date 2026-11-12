@@ -8,7 +8,6 @@ import {
 } from "./audio/audioManager";
 import {
   createGame,
-  gameConfig,
   getMoveDirection,
   performGameAction,
   registerInput,
@@ -64,19 +63,11 @@ registerInput({
     }
     if (game.mode !== "game") return;
     clearTutorialHint(tutorial);
-    const result = performGameAction(game, direction);
-    if (result === "dash") {
-      playGameEvents([{ type: "dash" }]);
-    }
-    if (result === "push") {
+    const events = performGameAction(game, direction);
+    if (events.some((event) => event.type === "blockPush")) {
       observeTutorialPush(tutorial, game);
-      playGameEvents([
-        {
-          type: "blockPush",
-          durationSeconds: gameConfig.action.blockPushDurationSeconds,
-        },
-      ]);
     }
+    playGameEvents(events);
   },
   onRetry: () => {
     const nowSeconds = getNowSeconds();

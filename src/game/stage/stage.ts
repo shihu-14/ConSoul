@@ -7,6 +7,22 @@ import {
 
 const WIDTH = 20;
 const HEIGHT = 20;
+const WALL_SPRITE_VARIANT_COUNT = 4;
+const MOSS_SPRITE_VARIANT_COUNT = 3;
+
+const blockSpritesByStage: readonly (readonly BlockState["sprite"][])[] =
+  stageSources.map((source) =>
+    Array.from(source.grid).flatMap((cell) =>
+      cell === "#" || cell === "B"
+        ? [
+            {
+              wallIndex: Math.floor(Math.random() * WALL_SPRITE_VARIANT_COUNT),
+              mossIndex: Math.floor(Math.random() * MOSS_SPRITE_VARIANT_COUNT),
+            },
+          ]
+        : [],
+    ),
+  );
 
 const toPosition = (value: readonly [number, number]): Position => ({
   x: value[0],
@@ -54,13 +70,15 @@ export const getStageCount = () => stageSources.length;
 export const createStage = (stageIndex: number): StageState => {
   const source = stageSources[stageIndex];
   if (!source) throw new Error(`ステージ${stageIndex + 1}は存在しません。`);
+  const blockSprites = blockSpritesByStage[stageIndex];
 
-  // リトライ前の移動状態が残らないよう，原本から毎回作り直す．
+  // 起動時に決めた見た目だけを再利用し，移動状態は原本から毎回作り直す．
   const blocks: BlockState[] = [];
   for (let index = 0; index < source.grid.length; index += 1) {
     if (source.grid[index] === "#" || source.grid[index] === "B") {
       blocks.push({
         position: { x: index % WIDTH, y: Math.floor(index / WIDTH) },
+        sprite: { ...blockSprites[blocks.length] },
         movement: null,
       });
     }

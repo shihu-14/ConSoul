@@ -52,13 +52,23 @@ export const retryStage = (game: GameState, nowSeconds: number) => {
 export const performGameAction = (
   game: GameState,
   requestedDirection: Direction | null,
-) => {
-  if (game.mode !== "game") return "ignored" as const;
-  return performPlayerAction(
+): GameSignal[] => {
+  if (game.mode !== "game") return [];
+  const result = performPlayerAction(
     game.player,
     game.stage,
     requestedDirection ?? game.player.direction,
   );
+  if (result === "dash") return [{ type: "dash" }];
+  if (result === "push") {
+    return [
+      {
+        type: "blockPush",
+        durationSeconds: gameConfig.action.blockPushDurationSeconds,
+      },
+    ];
+  }
+  return [];
 };
 
 export const returnToTitle = (game: GameState, nowSeconds: number) => {
