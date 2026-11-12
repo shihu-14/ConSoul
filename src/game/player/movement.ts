@@ -1,57 +1,17 @@
 import {
-  CharacterType,
   Direction,
   GameSignal,
   PlayerState,
-  Position,
   StageState,
   gameConfig,
   getNextPosition,
   getPlayerDashSpeedTilesPerSecond,
   getPlayerSpeedTilesPerSecond,
   isCellBlocked,
-  positionsEqual,
-} from "./shared";
-import { findTouchingBlock, tryStartPush } from "./stage";
+} from "../shared";
+import { resolvePlayerItems } from "./inventory";
 
 const EPS = 1e-8;
-
-export const createPlayer = (
-  characterType: CharacterType,
-  logicalPosition: Readonly<Position>,
-): PlayerState => ({
-  position: { ...logicalPosition },
-  direction: "right",
-  characterType,
-  movement: null,
-  energy: gameConfig.energy.maximum,
-  heldItems: [],
-});
-
-const collectItems = (player: PlayerState, stage: StageState) => {
-  const collected = stage.remainingItems.filter((item) =>
-    positionsEqual(player.position, item.position),
-  );
-  if (collected.length === 0) return false;
-  const collectedSet = new Set(collected);
-  stage.remainingItems = stage.remainingItems.filter(
-    (item) => !collectedSet.has(item),
-  );
-  player.heldItems.push(...collected);
-  return true;
-};
-
-const deliverItems = (player: PlayerState, stage: StageState) => {
-  if (
-    player.heldItems.length === 0 ||
-    !positionsEqual(player.position, stage.post)
-  ) {
-    return false;
-  }
-  stage.deliveredItems.push(...player.heldItems);
-  player.heldItems = [];
-  return true;
-};
 
 const recoverPlayerEnergy = (
   player: PlayerState,
@@ -61,15 +21,6 @@ const recoverPlayerEnergy = (
     gameConfig.energy.maximum,
     player.energy + deltaSeconds * gameConfig.energy.recoveryPerSecond,
   );
-};
-
-const resolvePlayerItems = (
-  player: PlayerState,
-  stage: StageState,
-  signals: GameSignal[],
-): void => {
-  if (collectItems(player, stage)) signals.push({ type: "itemPickup" });
-  if (deliverItems(player, stage)) signals.push({ type: "itemDeliver" });
 };
 
 const emitPlayerWalkSignals = (
@@ -182,56 +133,4 @@ export const updatePlayer = (
     random,
   );
   return signals;
-};
-
-export const performPlayerAction = (
-  player: PlayerState,
-  stage: StageState,
-  direction: Direction,
-) => {
-  if (player.movement?.type === "dash") return "ignored" as const;
-  if (player.movement?.type === "walk") {
-    if (player.energy < gameConfig.energy.dashCost) {
-      return "insufficientEnergy" as const;
-    }
-    player.movement = {
-      type: "dash",
-      elapsedDistance: player.movement.elapsedDistance,
-      remainingCells: gameConfig.action.dashDistanceTiles,
-    };
-    player.energy -= gameConfig.energy.dashCost;
-    return "dash" as const;
-  }
-  player.direction = direction;
-  const touchingBlock = findTouchingBlock(
-    player.position,
-    stage.blocks,
-    direction,
-  );
-  // 墓石に触れているときは，ダッシュよりPushを優先．
-  if (touchingBlock) {
-    if (player.energy < gameConfig.energy.pushCost) {
-      return "insufficientEnergy" as const;
-    }
-    if (!tryStartPush(stage, direction, touchingBlock)) {
-      return "blocked" as const;
-    }
-    player.energy -= gameConfig.energy.pushCost;
-    return "push" as const;
-  }
-
-  if (player.energy < gameConfig.energy.dashCost) {
-    return "insufficientEnergy" as const;
-  }
-  if (isCellBlocked(stage, getNextPosition(player.position, direction))) {
-    return "blocked" as const;
-  }
-  // ダッシュ中はアイテムの重さを反映しない．
-  player.movement = {
-    type: "dash",
-    elapsedDistance: 0,
-    remainingCells: gameConfig.action.dashDistanceTiles,
-  };
-  player.energy -= gameConfig.energy.dashCost;
-  return "dash" as const;
 };

@@ -8,7 +8,7 @@ import {
   createPlayer,
   performPlayerAction,
   updatePlayer,
-} from "../player";
+} from ".";
 
 const createEmptyStage = (): StageState => ({
   width: 6,
