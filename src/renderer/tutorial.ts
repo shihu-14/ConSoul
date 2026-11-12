@@ -8,6 +8,11 @@ const GUIDANCE_BOB_FREQUENCY = Math.PI * 3;
 const GUIDANCE_BOB_TILES = 0.07;
 const GUIDANCE_ARROW_WIDTH_TILES = 0.68;
 const GUIDANCE_ARROW_HEIGHT_TILES = 0.5;
+const GUIDANCE_STROKE_TILES = 0.06;
+const GUIDANCE_MIN_STROKE_WIDTH = 2;
+const GUIDANCE_TARGET_GAP = 16;
+const GUIDANCE_NOTCH_Y_RATIO = 0.48;
+const GUIDANCE_SHOULDER_Y_RATIO = 0.4;
 const KEY_HINT_SIZE_TILES = 1.5;
 
 const drawGuidance = (
@@ -26,16 +31,26 @@ const drawGuidance = (
   const arrowHeight = cellSize * GUIDANCE_ARROW_HEIGHT_TILES;
   context.fillStyle = "#fbbf24";
   context.strokeStyle = "#1b1b1b";
-  context.lineWidth = Math.max(2, cellSize * 0.06);
+  context.lineWidth = Math.max(
+    GUIDANCE_MIN_STROKE_WIDTH,
+    cellSize * GUIDANCE_STROKE_TILES,
+  );
 
-  const topY = guidance.target.y * cellSize - arrowHeight - 16 + bob;
+  const topY =
+    guidance.target.y * cellSize - arrowHeight - GUIDANCE_TARGET_GAP + bob;
   context.beginPath();
   context.moveTo(centerX - arrowWidth / 2, topY);
-  context.lineTo(centerX, topY + arrowHeight * 0.48);
+  context.lineTo(centerX, topY + arrowHeight * GUIDANCE_NOTCH_Y_RATIO);
   context.lineTo(centerX + arrowWidth / 2, topY);
-  context.lineTo(centerX + arrowWidth / 2, topY + arrowHeight * 0.4);
+  context.lineTo(
+    centerX + arrowWidth / 2,
+    topY + arrowHeight * GUIDANCE_SHOULDER_Y_RATIO,
+  );
   context.lineTo(centerX, topY + arrowHeight);
-  context.lineTo(centerX - arrowWidth / 2, topY + arrowHeight * 0.4);
+  context.lineTo(
+    centerX - arrowWidth / 2,
+    topY + arrowHeight * GUIDANCE_SHOULDER_Y_RATIO,
+  );
   context.closePath();
   context.fill();
   context.stroke();

@@ -20,6 +20,16 @@ const INVENTORY_SLOT_PADDING = 8;
 const INVENTORY_SLOT_RADIUS = 8;
 const INVENTORY_SLOT_Y_OFFSET = 50;
 const CONTROL_LABEL_GAP = 27;
+const STAGE_LABEL_BASELINE_Y = 50;
+const INVENTORY_LABEL_Y_OFFSET = 20;
+const SLOT_BORDER_WIDTH = 2;
+const CONTROL_TITLE_Y_OFFSET = 53;
+const MOVEMENT_GROUP_X_OFFSET = -28;
+const MOVEMENT_GROUP_Y_OFFSET = 82;
+const ACTION_ICON_BOTTOM_OFFSET = 304;
+const ACTION_GROUP_X_OFFSET = 75;
+const RESET_ICON_SIZE = 64;
+const SPACE_ICON_ALIGNMENT_Y = 20;
 
 const movementIcons = [
   "keyArrowUp",
@@ -46,7 +56,7 @@ const drawStageProgress = (
   context.fillText(
     `STAGE ${game.stageIndex + 1} / ${getStageCount()}`,
     HUD_X + PANEL_PADDING,
-    50,
+    STAGE_LABEL_BASELINE_Y,
   );
   context.restore();
 };
@@ -62,7 +72,11 @@ const drawInventory = (
   context.font = "bold 24px sans-serif";
   context.textAlign = "left";
   context.textBaseline = "alphabetic";
-  context.fillText("所持中のアイテム", HUD_X + PANEL_PADDING, INVENTORY_Y + 20);
+  context.fillText(
+    "所持中のアイテム",
+    HUD_X + PANEL_PADDING,
+    INVENTORY_Y + INVENTORY_LABEL_Y_OFFSET,
+  );
   const slotCount =
     game.stage.remainingItems.length +
     game.player.heldItems.length +
@@ -80,7 +94,7 @@ const drawInventory = (
     const slotX = firstSlotX + index * (slotSize + INVENTORY_SLOT_GAP);
     context.fillStyle = "#353a57";
     context.strokeStyle = "#69718b";
-    context.lineWidth = 2;
+    context.lineWidth = SLOT_BORDER_WIDTH;
     context.beginPath();
     context.roundRect(slotX, slotY, slotSize, slotSize, INVENTORY_SLOT_RADIUS);
     context.fill();
@@ -111,12 +125,16 @@ const drawControls = (context: CanvasRenderingContext2D): void => {
   context.fillStyle = "#ffffff";
   context.textBaseline = "alphabetic";
   context.font = "bold 24px sans-serif";
-  context.fillText("操作方法", HUD_X + PANEL_PADDING, PANEL_Y + 53);
+  context.fillText(
+    "操作方法",
+    HUD_X + PANEL_PADDING,
+    PANEL_Y + CONTROL_TITLE_Y_OFFSET,
+  );
   const centerX = HUD_X + HUD_WIDTH / 2;
-  const movementCenterX = centerX - 28;
+  const movementCenterX = centerX + MOVEMENT_GROUP_X_OFFSET;
   const movementWidth = 3 * MOVEMENT_ICON_SIZE + 2 * KEY_ICON_GAP;
   const movementX = Math.round(movementCenterX - movementWidth / 2);
-  const movementY = PANEL_Y + 82;
+  const movementY = PANEL_Y + MOVEMENT_GROUP_Y_OFFSET;
   movementIcons.forEach((id, index) => {
     const [offsetX, offsetY] = movementIconOffsets[index];
     context.drawImage(
@@ -131,25 +149,24 @@ const drawControls = (context: CanvasRenderingContext2D): void => {
   context.font = "bold 20px sans-serif";
   const movementBottom = movementY + 2 * MOVEMENT_ICON_SIZE + KEY_ICON_GAP;
   context.fillText("MOVE", movementCenterX, movementBottom + CONTROL_LABEL_GAP);
-  const actionIconBottom = PANEL_Y + 304;
+  const actionIconBottom = PANEL_Y + ACTION_ICON_BOTTOM_OFFSET;
   const actionLabelY = actionIconBottom + CONTROL_LABEL_GAP;
-  const spaceCenterX = centerX - 75;
-  const resetCenterX = centerX + 75;
-  const resetIconSize = 64;
+  const spaceCenterX = centerX - ACTION_GROUP_X_OFFSET;
+  const resetCenterX = centerX + ACTION_GROUP_X_OFFSET;
   context.drawImage(
     getImage("keySpace"),
     spaceCenterX - ACTION_ICON_SIZE / 2,
-    actionIconBottom - ACTION_ICON_SIZE + 20,
+    actionIconBottom - ACTION_ICON_SIZE + SPACE_ICON_ALIGNMENT_Y,
     ACTION_ICON_SIZE,
     ACTION_ICON_SIZE,
   );
   context.fillText("DASH / PUSH", spaceCenterX, actionLabelY);
   context.drawImage(
     getImage("keyR"),
-    resetCenterX - resetIconSize / 2,
-    actionIconBottom - resetIconSize,
-    resetIconSize,
-    resetIconSize,
+    resetCenterX - RESET_ICON_SIZE / 2,
+    actionIconBottom - RESET_ICON_SIZE,
+    RESET_ICON_SIZE,
+    RESET_ICON_SIZE,
   );
   context.fillText("RESET", resetCenterX, actionLabelY);
   context.restore();

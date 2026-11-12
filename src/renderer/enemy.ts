@@ -8,7 +8,9 @@ const ENEMY_SOURCE_Y = { random: 0, patrol: 0, chase: 64, rush: 128 } as const;
 const HEART_FRAME_COUNT = 3;
 const HEART_FRAMES_PER_SECOND = 4;
 const ALERT_STROKE_TILES = 0.1;
+const ALERT_MIN_STROKE_WIDTH = 2;
 const ALERT_FONT_TILES = 0.8;
+const ALERT_MIN_FONT_SIZE = 14;
 const ALERT_POSITION_Y_TILES = 0.05;
 
 const getDisplayDirection = (enemy: EnemyState): Direction =>
@@ -68,8 +70,14 @@ const renderEnemy = (
   if (alert) {
     context.fillStyle = "#ff3b30";
     context.strokeStyle = "#1b1b1b";
-    context.lineWidth = Math.max(2, cellSize * ALERT_STROKE_TILES);
-    context.font = `bold ${Math.max(14, cellSize * ALERT_FONT_TILES)}px monospace`;
+    context.lineWidth = Math.max(
+      ALERT_MIN_STROKE_WIDTH,
+      cellSize * ALERT_STROKE_TILES,
+    );
+    context.font = `bold ${Math.max(
+      ALERT_MIN_FONT_SIZE,
+      cellSize * ALERT_FONT_TILES,
+    )}px monospace`;
     context.textAlign = "center";
     context.textBaseline = "middle";
     const label = enemy.type === "rush" ? "!!" : "!";
