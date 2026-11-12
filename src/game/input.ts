@@ -1,6 +1,6 @@
-import { CharacterType, Direction } from "./types";
+import { CharacterType, Direction } from "./shared";
 
-// 同時押しでは最後に押した方向を優先する。
+// 同時押しでは最後に押した方向を優先する．
 const pressedDirections: Direction[] = [];
 
 const getDirectionForKey = (key: string): Direction | null => {

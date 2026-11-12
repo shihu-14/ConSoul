@@ -1,6 +1,4 @@
-import { gameConfig } from "./game/config";
-import { GameSignal } from "./game/events";
-import { GameState, Position } from "./game/types";
+import { GameSignal, GameState, Position, gameConfig } from "./game";
 
 const DASH_HINT_RANGE_TILES = 4;
 const PUSH_TUTORIAL_BLOCKS = [

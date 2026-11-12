@@ -1,4 +1,4 @@
-import { GameState } from "../game/types";
+import { GameState } from "../game";
 
 export const FIELD_SIZE = 960;
 export const HUD_X = 960;

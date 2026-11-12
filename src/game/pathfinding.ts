@@ -1,5 +1,9 @@
-import { getBlockedCellKeys } from "./grid";
-import { Direction, Position, StageState } from "./types";
+import {
+  Direction,
+  Position,
+  StageState,
+  getBlockedCellKeys,
+} from "./shared";
 
 const steps: ReadonlyArray<{
   direction: Direction;
@@ -12,7 +16,7 @@ const steps: ReadonlyArray<{
   { direction: "right", x: 1, y: 0 },
 ];
 
-// 目的地から距離を広げ、開始マスの隣だけを最後に比べる。
+// 目的地から距離を広げ，開始マスの隣だけを最後に比べる．
 export const findShortestDirections = (
   stage: StageState,
   startPosition: Readonly<Position>,

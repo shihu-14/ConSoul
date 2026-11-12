@@ -1,6 +1,10 @@
 import { EnemyBehavior } from "./common";
-import { isCellBlocked } from "../grid";
-import { Direction, EnemyState, StageState } from "../types";
+import {
+  Direction,
+  EnemyState,
+  StageState,
+  isCellBlocked,
+} from "../shared";
 
 type PatrolEnemy = Extract<EnemyState, { type: "patrol" }>;
 

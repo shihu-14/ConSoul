@@ -1,4 +1,4 @@
-import { GameState } from "../game/types";
+import { GameState } from "../game";
 import { renderActors } from "./renderActors";
 import { renderField } from "./renderField";
 import { renderHud } from "./renderHud";

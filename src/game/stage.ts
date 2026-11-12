@@ -1,4 +1,9 @@
-import { BlockState, EnemyState, Position, StageState } from "./types";
+import {
+  BlockState,
+  EnemyState,
+  Position,
+  StageState,
+} from "./shared";
 import {
   stageSources,
   type StageEnemySource,
@@ -55,7 +60,7 @@ export const createStage = (stageIndex: number): StageState => {
   const source = stageSources[stageIndex];
   if (!source) throw new Error(`ステージ${stageIndex + 1}は存在しません。`);
 
-  // リトライ前の移動状態が残らないよう、原本から毎回作り直す。
+  // リトライ前の移動状態が残らないよう，原本から毎回作り直す．
   const blocks: BlockState[] = [];
   for (let index = 0; index < source.grid.length; index += 1) {
     if (source.grid[index] === "#" || source.grid[index] === "B") {

@@ -64,7 +64,7 @@ export const isCellBlocked = (
   ) {
     return true;
   }
-  // 移動中は、元のマスと移動先の両方を塞ぐ。
+  // 移動中は，元のマスと移動先の両方を塞ぐ．
   return stage.blocks.some(
     (block) =>
       positionsEqual(block.position, logicalPosition) ||
@@ -93,7 +93,7 @@ export const getBlockedCellKeys = (stage: StageState) => {
   return blocked;
 };
 
-// 辺が触れただけなら衝突扱いにしない。
+// 辺が触れただけなら衝突扱いにしない．
 export const rectanglesOverlap = (
   firstDisplayPosition: Readonly<Position>,
   secondDisplayPosition: Readonly<Position>,

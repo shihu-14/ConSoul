@@ -1,4 +1,4 @@
-import { GameState } from "../game/types";
+import { GameState } from "../game";
 import { getImage } from "./assets";
 
 const TITLE_SELECTION_NUMBER_SIZE = 75;

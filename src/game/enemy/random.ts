@@ -1,5 +1,5 @@
 import { chooseRandomDirection, EnemyBehavior } from "./common";
-import { EnemyState } from "../types";
+import { EnemyState } from "../shared";
 
 type RandomEnemy = Extract<EnemyState, { type: "random" }>;
 

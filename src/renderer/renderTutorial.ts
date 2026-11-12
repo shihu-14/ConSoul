@@ -1,5 +1,4 @@
-import { getDisplayPosition } from "../game/grid";
-import { GameState } from "../game/types";
+import { GameState, getDisplayPosition } from "../game";
 import { TutorialGuidance, TutorialOverlay } from "../tutorial";
 import { getImage } from "./assets";
 import { FIELD_SIZE, getCellSize } from "./gameLayout";

@@ -6,12 +6,14 @@ import {
   isDetected,
 } from "./common";
 import {
+  EnemyState,
+  StageState,
   gameConfig,
   getEnemySpeedTilesPerSecond,
+  getNextPosition,
   getRushSpeedTilesPerSecond,
-} from "../config";
-import { getNextPosition, isBoundaryBlock } from "../grid";
-import { EnemyState, StageState } from "../types";
+  isBoundaryBlock,
+} from "../shared";
 
 type RushEnemy = Extract<EnemyState, { type: "rush" }>;
 

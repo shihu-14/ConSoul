@@ -1,21 +1,20 @@
 // 待機と移動を同じループで消費する．
 /* eslint-disable no-continue */
 
-import { gameConfig, getEnemySpeedTilesPerSecond } from "../config";
-import { GameSignal } from "../events";
-import {
-  getBlockedCellKeys,
-  getNextPosition,
-  isCellBlocked,
-  positionsEqual,
-} from "../grid";
 import {
   Direction,
   EnemyState,
+  GameSignal,
   PlayerState,
   Position,
   StageState,
-} from "../types";
+  gameConfig,
+  getBlockedCellKeys,
+  getEnemySpeedTilesPerSecond,
+  getNextPosition,
+  isCellBlocked,
+  positionsEqual,
+} from "../shared";
 
 const EPS = 1e-8;
 

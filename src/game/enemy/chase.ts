@@ -7,12 +7,14 @@ import {
   oppositeDirection,
 } from "./common";
 import {
+  EnemyState,
+  PlayerState,
+  StageState,
   gameConfig,
   getChaseSpeedTilesPerSecond,
   getEnemySpeedTilesPerSecond,
-} from "../config";
+} from "../shared";
 import { findShortestDirections } from "../pathfinding";
-import { EnemyState, PlayerState, StageState } from "../types";
 
 type ChaseEnemy = Extract<EnemyState, { type: "chase" }>;
 

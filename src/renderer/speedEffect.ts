@@ -1,4 +1,4 @@
-import { Direction, Position } from "../game/types";
+import { Direction, Position } from "../game";
 import { getImage } from "./assets";
 
 const SOURCE_FRAME_SIZE = 20;

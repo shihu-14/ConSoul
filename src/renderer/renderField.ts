@@ -1,5 +1,9 @@
-import { getDisplayPosition, getNextPosition } from "../game/grid";
-import { BlockState, GameState } from "../game/types";
+import {
+  BlockState,
+  GameState,
+  getDisplayPosition,
+  getNextPosition,
+} from "../game";
 import { getImage } from "./assets";
 import { getCellSize } from "./gameLayout";
 import { drawItem } from "./renderItems";

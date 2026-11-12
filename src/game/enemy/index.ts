@@ -3,8 +3,7 @@ import { chaseBehavior } from "./chase";
 import { patrolBehavior } from "./patrol";
 import { randomBehavior } from "./random";
 import { rushBehavior } from "./rush";
-import { GameSignal } from "../events";
-import { PlayerState, StageState } from "../types";
+import { GameSignal, PlayerState, StageState } from "../shared";
 
 export const updateEnemies = (
   stage: StageState,

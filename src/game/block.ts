@@ -1,11 +1,14 @@
-import { gameConfig } from "./config";
 import {
+  BlockState,
+  Direction,
+  Position,
+  StageState,
+  gameConfig,
   getDirectionVector,
   getNextPosition,
   isBoundaryBlock,
   positionsEqual,
-} from "./grid";
-import { BlockState, Direction, Position, StageState } from "./types";
+} from "./shared";
 
 const EPS = 1e-8;
 

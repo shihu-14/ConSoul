@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { gameConfig } from "../config";
 import { createPlayer } from "../player";
-import { EnemyState, StageState } from "../types";
+import { EnemyState, StageState, gameConfig } from "../shared";
 import { updateEnemies } from ".";
 
 describe("enemy", () => {

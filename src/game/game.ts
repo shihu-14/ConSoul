@@ -1,11 +1,16 @@
-import { gameConfig } from "./config";
 import { updateEnemies } from "./enemy";
-import { getDisplayPosition, rectanglesOverlap } from "./grid";
 import { updateBlocks } from "./block";
 import { createPlayer, performPlayerAction, updatePlayer } from "./player";
 import { createStage, getStageCount } from "./stage";
-import { GameSignal } from "./events";
-import { CharacterType, Direction, GameState } from "./types";
+import {
+  CharacterType,
+  Direction,
+  GameSignal,
+  GameState,
+  gameConfig,
+  getDisplayPosition,
+  rectanglesOverlap,
+} from "./shared";
 
 const EPS = 1e-8;
 
@@ -154,7 +159,7 @@ export const updateGame = (
 
   game.elapsedSeconds += elapsedDelta;
 
-  // タブ復帰時などに、止まっていた分までゲームが一気に進まないようにする。
+  // タブ復帰時などに，止まっていた分までゲームが一気に進まないようにする．
   const simulationDelta = Math.min(
     elapsedDelta,
     gameConfig.simulation.maximumCatchUpSeconds,
@@ -175,7 +180,7 @@ export const updateGame = (
     return events;
   }
 
-  // すれ違いを見逃さないよう、長いフレームは小刻みに処理する。
+  // すれ違いを見逃さないよう，長いフレームは小刻みに処理する．
   let remainingSeconds = simulationDelta;
   let currentSeconds = nowSeconds - simulationDelta;
   while (remainingSeconds > EPS && game.mode === "game") {

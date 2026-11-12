@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { gameConfig } from "./config";
 import {
   createGame,
+  gameConfig,
   retryStage,
   startGame,
   updateGame,
-} from "./game";
-import { createPlayer } from "./player";
-import { GameState } from "./types";
+} from ".";
 
 describe("game lifecycle", () => {
   it("starts, retries, and advances to the next stage", () => {
@@ -40,25 +38,20 @@ describe("game lifecycle", () => {
   });
 
   it("caps catch-up simulation while preserving elapsed time", () => {
-    const player = createPlayer("student", { x: 1, y: 1 });
-    player.energy = 0;
-    const game: GameState = {
-      mode: "game",
-      modeStartedAtSeconds: 0,
-      stageIndex: 0,
-      stage: {
-        width: 10,
-        height: 10,
-        remainingItems: [],
-        deliveredItems: [],
-        post: { x: 8, y: 8 },
-        playerStart: { x: 1, y: 1 },
-        enemies: [],
-        blocks: [],
-      },
-      player,
-      elapsedSeconds: 0,
+    const game = createGame(0);
+    startGame(game, "student", 0);
+    game.stage = {
+      width: 10,
+      height: 10,
+      remainingItems: [],
+      deliveredItems: [],
+      post: { x: 8, y: 8 },
+      playerStart: { x: 1, y: 1 },
+      enemies: [],
+      blocks: [],
     };
+    game.player.position = { x: 1, y: 1 };
+    game.player.energy = 0;
 
     updateGame(game, "right", 1, 1, () => 1);
 

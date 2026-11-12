@@ -1,5 +1,4 @@
-import { GameSignal } from "../game/events";
-import { Mode } from "../game/types";
+import { GameSignal, Mode } from "../game";
 import { audioAssets, SfxId } from "./audioAssets";
 
 const BGM_VOLUME = 0.35;

@@ -6,16 +6,18 @@ import {
   stopAllAudio,
   syncBgmMode,
 } from "./audio/audioManager";
-import { gameConfig } from "./game/config";
 import {
   createGame,
+  gameConfig,
+  getMoveDirection,
   performGameAction,
+  registerInput,
+  resetInput,
   retryStage,
   returnToTitle,
   startGame,
   updateGame,
-} from "./game/game";
-import { getMoveDirection, registerInput, resetInput } from "./game/input";
+} from "./game";
 import { preserveBlockSpritesOnRetry } from "./renderer/renderField";
 import { renderGame } from "./renderer/renderGame";
 import { renderTutorial } from "./renderer/renderTutorial";

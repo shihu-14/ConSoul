@@ -1,4 +1,4 @@
-import { Item } from "../game/types";
+import { Item } from "../game";
 import { getImage } from "./assets";
 
 export const drawItem = (

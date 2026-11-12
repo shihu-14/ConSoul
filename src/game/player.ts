@@ -1,18 +1,18 @@
 import {
-  gameConfig,
-  getPlayerDashSpeedTilesPerSecond,
-  getPlayerSpeedTilesPerSecond,
-} from "./config";
-import { findTouchingBlock, tryStartPush } from "./block";
-import { GameSignal } from "./events";
-import { getNextPosition, isCellBlocked, positionsEqual } from "./grid";
-import {
   CharacterType,
   Direction,
+  GameSignal,
   PlayerState,
   Position,
   StageState,
-} from "./types";
+  gameConfig,
+  getNextPosition,
+  getPlayerDashSpeedTilesPerSecond,
+  getPlayerSpeedTilesPerSecond,
+  isCellBlocked,
+  positionsEqual,
+} from "./shared";
+import { findTouchingBlock, tryStartPush } from "./block";
 
 const EPS = 1e-8;
 

@@ -1,6 +1,10 @@
-import { gameConfig } from "../game/config";
-import { getDisplayPosition } from "../game/grid";
-import { Direction, EnemyState, GameState } from "../game/types";
+import {
+  Direction,
+  EnemyState,
+  GameState,
+  gameConfig,
+  getDisplayPosition,
+} from "../game";
 import { getImage } from "./assets";
 import { FIELD_SIZE, getCellSize } from "./gameLayout";
 import { createSpeedEffectRenderer } from "./speedEffect";

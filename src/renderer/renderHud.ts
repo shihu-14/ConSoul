@@ -1,5 +1,4 @@
-import { GameState } from "../game/types";
-import { getStageCount } from "../game/stage";
+import { GameState, getStageCount } from "../game";
 import { getImage } from "./assets";
 import {
   ACTION_ICON_SIZE,

@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { gameConfig, getPlayerSpeedTilesPerSecond } from "../config";
+import {
+  StageState,
+  gameConfig,
+  getPlayerSpeedTilesPerSecond,
+} from "../shared";
 import {
   createPlayer,
   performPlayerAction,
   updatePlayer,
 } from "../player";
-import { StageState } from "../types";
 
 const createEmptyStage = (): StageState => ({
   width: 6,
