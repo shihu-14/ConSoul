@@ -8,14 +8,39 @@ import { getImage } from "./assets";
 import { getCellSize } from "./layout";
 
 const SOURCE_TILE_SIZE = 64;
+const WALL_VARIANT_COUNT = 4;
+const MOSS_VARIANT_COUNT = 3;
+const APPEARANCE_VARIANT_COUNT = WALL_VARIANT_COUNT * MOSS_VARIANT_COUNT;
+const STAGE_VARIATION_FACTOR = 12.9898;
+const BLOCK_VARIATION_FACTOR = 78.233;
+const VARIATION_SCALE = 43758.5453;
+const BLOCK_APPEARANCE_SEED = Math.random();
 
 const isMovingHorizontally = (block: BlockState): boolean =>
   block.movement?.direction === "left" || block.movement?.direction === "right";
 
-const getHorizontalEndPosition = (block: BlockState) =>
+const getLayerPosition = (block: BlockState) =>
   isMovingHorizontally(block) && block.movement
     ? getNextPosition(block.position, block.movement.direction)
     : block.position;
+
+// 起動時のシードと安定IDだけから導出し，描画用の状態をゲームロジックへ持ち込まない．
+const getBlockAppearance = (stageIndex: number, blockId: number) => {
+  const variation = Math.floor(
+    Math.abs(
+      Math.sin(
+        BLOCK_APPEARANCE_SEED +
+          (stageIndex + 1) * STAGE_VARIATION_FACTOR +
+          (blockId + 1) * BLOCK_VARIATION_FACTOR,
+      ) * VARIATION_SCALE,
+    ) % APPEARANCE_VARIANT_COUNT,
+  );
+  return {
+    wallVariant: variation % WALL_VARIANT_COUNT,
+    mossVariant:
+      Math.floor(variation / WALL_VARIANT_COUNT) % MOSS_VARIANT_COUNT,
+  };
+};
 
 export const renderBlocks = (
   game: GameState,
@@ -28,34 +53,19 @@ export const renderBlocks = (
       block.movement?.direction ?? null,
       block.movement?.elapsedDistance ?? 0,
     );
-    const hasFrontBlock = game.stage.blocks.some(
-      (candidate) =>
-        candidate.position.x === block.position.x &&
-        candidate.position.y === block.position.y + 1,
-    );
-    const endPosition = getHorizontalEndPosition(block);
-    // 横押し中だけ，移動先の墓石との重なりを先に反映する．
-    const horizontalFrontChange =
-      isMovingHorizontally(block) ||
-      game.stage.blocks.some(
-        (candidate) =>
-          isMovingHorizontally(candidate) &&
-          candidate.position.y === block.position.y + 1 &&
-          (candidate.position.x === block.position.x ||
-            getHorizontalEndPosition(candidate).x === endPosition.x),
+    const layerPosition = getLayerPosition(block);
+    // 横移動では移動先の列を使い，アニメーション中の苔の切り替わりを防ぐ．
+    const coveredFromFront = game.stage.blocks.some((candidate) => {
+      const candidatePosition = getLayerPosition(candidate);
+      return (
+        candidatePosition.x === layerPosition.x &&
+        candidatePosition.y === layerPosition.y + 1
       );
-    const coveredFromFront = horizontalFrontChange
-      ? game.stage.blocks.some((candidate) => {
-          const candidateEnd = getHorizontalEndPosition(candidate);
-          return (
-            candidateEnd.x === endPosition.x &&
-            candidateEnd.y === endPosition.y + 1
-          );
-        })
-      : hasFrontBlock;
+    });
+    const appearance = getBlockAppearance(game.stageIndex, block.id);
     context.drawImage(
       getImage("wall"),
-      block.sprite.wallIndex * SOURCE_TILE_SIZE,
+      appearance.wallVariant * SOURCE_TILE_SIZE,
       0,
       SOURCE_TILE_SIZE,
       SOURCE_TILE_SIZE,
@@ -67,7 +77,7 @@ export const renderBlocks = (
     if (!coveredFromFront) {
       context.drawImage(
         getImage("wallMoss"),
-        block.sprite.mossIndex * SOURCE_TILE_SIZE,
+        appearance.mossVariant * SOURCE_TILE_SIZE,
         0,
         SOURCE_TILE_SIZE,
         SOURCE_TILE_SIZE,

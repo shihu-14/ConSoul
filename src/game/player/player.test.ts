@@ -54,8 +54,8 @@ describe("player", () => {
     const stage = createEmptyStage();
     stage.blocks = [
       {
+        id: 8,
         position: { x: 2, y: 1 },
-        sprite: { wallIndex: 0, mossIndex: 0 },
         movement: null,
       },
     ];

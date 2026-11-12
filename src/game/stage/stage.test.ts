@@ -5,9 +5,13 @@ describe("stage", () => {
   it("creates independent state from a valid source", () => {
     const first = createStage(0);
     const second = createStage(0);
+    const firstBlockIds = first.blocks.map((block) => block.id);
+    const secondBlockIds = second.blocks.map((block) => block.id);
 
     expect(first).not.toBe(second);
     expect(first.blocks.every((block) => block.movement === null)).toBe(true);
+    expect(firstBlockIds).toEqual(secondBlockIds);
+    expect(new Set(firstBlockIds).size).toBe(first.blocks.length);
     expect(validateStages()).toEqual([]);
     expect(() => createStage(getStageCount())).toThrow("は存在しません");
   });

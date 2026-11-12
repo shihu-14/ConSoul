@@ -67,11 +67,8 @@ export type EnemyState =
     };
 
 export type BlockState = {
+  id: number;
   position: Position;
-  sprite: {
-    wallIndex: number;
-    mossIndex: number;
-  };
   movement: {
     direction: Direction;
     elapsedDistance: number;
