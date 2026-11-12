@@ -1,5 +1,5 @@
 import { GameSignal, Mode } from "../game";
-import { audioAssets, SfxId } from "./audioAssets";
+import { audioAssets, SfxId } from "./assets";
 
 const BGM_VOLUME = 0.35;
 const MAX_SFX_VOICES = 4;
@@ -8,6 +8,7 @@ const bgm = new Audio(audioAssets.gameBgm);
 bgm.loop = true;
 bgm.preload = "auto";
 bgm.volume = BGM_VOLUME;
+
 const activeSfx = new Set<HTMLAudioElement>();
 const sfxVoices = new Map<SfxId, HTMLAudioElement[]>();
 const sfxPlaybackIds = new Map<HTMLAudioElement, number>();
@@ -16,7 +17,7 @@ const sfxStopTimers = new Map<
   ReturnType<typeof setTimeout>
 >();
 
-const sfxByEvent: Record<GameSignal["type"], SfxId> = {
+const sfxBySignal: Record<GameSignal["type"], SfxId> = {
   playerStep: "walk",
   playerCreak: "floorCreak",
   blockPush: "stonePush",
@@ -25,6 +26,7 @@ const sfxByEvent: Record<GameSignal["type"], SfxId> = {
   dash: "dash",
   itemPickup: "itemPickup",
 };
+
 type SfxMetadata = {
   volume: number;
   startOffsetSeconds: number;
@@ -70,11 +72,8 @@ const sfxMetadata: Record<SfxId, SfxMetadata> = {
     playbackRate: 1,
   },
 };
+
 let audioContext: AudioContext | null = null;
-const amplifiedSfxNodes = new Map<
-  HTMLAudioElement,
-  { source: MediaElementAudioSourceNode; gain: GainNode }
->();
 
 const getAudioContext = () => {
   if (typeof AudioContext === "undefined") return null;
@@ -96,7 +95,6 @@ const connectWalkingGain = (audio: HTMLAudioElement) => {
   gain.gain.value = sfxMetadata.walk.gain ?? 1;
   source.connect(gain);
   gain.connect(context.destination);
-  amplifiedSfxNodes.set(audio, { source, gain });
 };
 
 // ブラウザー側の設定で再生を拒否されることがある．
@@ -126,23 +124,23 @@ const stopSfx = (audio: HTMLAudioElement) => {
   releaseSfx(audio);
 };
 
-export const playBgm = () => {
+const playBgm = () => {
   resumeAudioContext();
   if (bgm.paused) startAudio(bgm);
 };
 
-export const stopBgm = () => {
+const stopBgm = () => {
   bgm.pause();
   bgm.currentTime = 0;
 };
 
-export const stopAllSfx = () => {
+export const stopSoundEffects = () => {
   Array.from(activeSfx).forEach(stopSfx);
 };
 
-export const stopAllAudio = () => {
+const stopAllAudio = () => {
   stopBgm();
-  stopAllSfx();
+  stopSoundEffects();
 };
 
 // 同じ効果音が重なってもよいように，Audio要素を少数だけ使い回す．
@@ -166,7 +164,7 @@ const getSfxVoice = (id: SfxId) => {
   return audio;
 };
 
-export const playSfx = (id: SfxId, durationSeconds?: number) => {
+const playSfx = (id: SfxId, durationSeconds?: number) => {
   const audio = getSfxVoice(id);
   const metadata = sfxMetadata[id];
   audio.volume = metadata.volume;
@@ -195,15 +193,15 @@ export const playSfx = (id: SfxId, durationSeconds?: number) => {
   );
 };
 
-export const playGameEvents = (events: readonly GameSignal[]) => {
-  events.forEach((event) => {
+export const playGameSignals = (signals: readonly GameSignal[]) => {
+  signals.forEach((signal) => {
     const durationSeconds =
-      "durationSeconds" in event ? event.durationSeconds : undefined;
-    playSfx(sfxByEvent[event.type], durationSeconds);
+      "durationSeconds" in signal ? signal.durationSeconds : undefined;
+    playSfx(sfxBySignal[signal.type], durationSeconds);
   });
 };
 
-export const syncBgmMode = (mode: Mode) => {
+export const handleGameModeChange = (mode: Mode) => {
   if (mode === "game" || mode === "stageTransition") {
     playBgm();
     return;

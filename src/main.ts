@@ -1,11 +1,9 @@
 import "./style.css";
 import {
-  playBgm,
-  playGameEvents,
-  stopAllSfx,
-  stopAllAudio,
-  syncBgmMode,
-} from "./audio/audioManager";
+  handleGameModeChange,
+  playGameSignals,
+  stopSoundEffects,
+} from "./audio";
 import {
   createGame,
   getMoveDirection,
@@ -15,6 +13,7 @@ import {
   retryStage,
   returnToTitle,
   startGame,
+  type Mode,
   updateGame,
 } from "./game";
 import {
@@ -45,10 +44,15 @@ const game = createGame(getNowSeconds());
 const tutorial = createTutorial();
 let previousFrameSeconds = getNowSeconds();
 
+const notifyModeChange = (previousMode: Mode): void => {
+  if (game.mode !== previousMode) handleGameModeChange(game.mode);
+};
+
 const returnFromFinishedScreen = () => {
   const nowSeconds = getNowSeconds();
+  const previousMode = game.mode;
   if (returnToTitle(game, nowSeconds)) {
-    stopAllAudio();
+    notifyModeChange(previousMode);
     resetInput();
     previousFrameSeconds = nowSeconds;
   }
@@ -66,22 +70,23 @@ registerInput({
     if (events.some((event) => event.type === "blockPush")) {
       observeTutorialPush(tutorial, game);
     }
-    playGameEvents(events);
+    playGameSignals(events);
   },
   onRetry: () => {
     const nowSeconds = getNowSeconds();
     if (retryStage(game, nowSeconds)) {
       beginTutorial(tutorial, game);
-      stopAllSfx();
+      stopSoundEffects();
       resetInput();
       previousFrameSeconds = nowSeconds;
     }
   },
   onSelectCharacter: (characterType) => {
     const nowSeconds = getNowSeconds();
+    const previousMode = game.mode;
     if (startGame(game, characterType, nowSeconds)) {
       beginTutorial(tutorial, game);
-      playBgm();
+      notifyModeChange(previousMode);
       resetInput();
       previousFrameSeconds = nowSeconds;
     }
@@ -102,11 +107,17 @@ const tick = (timestampMilliseconds: number) => {
   const deltaSeconds = nowSeconds - previousFrameSeconds;
   previousFrameSeconds = nowSeconds;
 
-  const events = updateGame(game, getMoveDirection(), deltaSeconds, nowSeconds);
-  observeTutorialEvents(tutorial, game, events);
+  const previousMode = game.mode;
+  const signals = updateGame(
+    game,
+    getMoveDirection(),
+    deltaSeconds,
+    nowSeconds,
+  );
+  observeTutorialEvents(tutorial, game, signals);
   updateTutorial(tutorial, game, nowSeconds);
-  playGameEvents(events);
-  syncBgmMode(game.mode);
+  playGameSignals(signals);
+  notifyModeChange(previousMode);
   context.clearRect(0, 0, canvas.width, canvas.height);
 
   switch (game.mode) {
