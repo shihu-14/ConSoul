@@ -25,11 +25,11 @@ const getDirectionForKey = (key: string): Direction | null => {
 const getCharacterForKey = (key: string): CharacterType | null => {
   switch (key) {
     case "1":
-      return "student";
+      return "monk";
     case "2":
       return "exorcist";
     case "3":
-      return "monk";
+      return "student";
     default:
       return null;
   }

@@ -1,21 +1,6 @@
 import { GameState } from "../game";
 import { getImage } from "./assets";
 
-const TITLE_SELECTION_NUMBER_SIZE = 75;
-const TITLE_SELECTION_NUMBERS = [
-  {
-    cover: { x: 460, y: 985, width: 75, height: 75 },
-    destination: { x: 460, y: 985 },
-  },
-  {
-    cover: { x: 840, y: 975, width: 75, height: 75 },
-    destination: { x: 840, y: 975 },
-  },
-  {
-    cover: { x: 1220, y: 975, width: 65, height: 75 },
-    destination: { x: 1215, y: 975 },
-  },
-] as const;
 const RESULT_MINUTE_NUMBER_RIGHT_X = 136;
 const RESULT_SECOND_NUMBER_RIGHT_X = 230;
 const RESULT_TIME_BASELINE_Y = 144;
@@ -32,33 +17,8 @@ const drawFullScreenImage = (
   return { offsetX, imageScale: height / image.height };
 };
 
-// 元画像の番号を隠し，選択用の番号を上から重ねる．
 export const renderTitle = (context: CanvasRenderingContext2D) => {
-  const titleImage = getImage("title");
-  const selectionNumbersImage = getImage("titleSelectionNumbers");
-  const { offsetX, imageScale } = drawFullScreenImage(context, titleImage);
-  context.save();
-  TITLE_SELECTION_NUMBERS.forEach(({ cover, destination }, index) => {
-    context.fillStyle = "#ffffff";
-    context.fillRect(
-      -offsetX + cover.x * imageScale,
-      cover.y * imageScale,
-      cover.width * imageScale,
-      cover.height * imageScale,
-    );
-    context.drawImage(
-      selectionNumbersImage,
-      index * TITLE_SELECTION_NUMBER_SIZE,
-      0,
-      TITLE_SELECTION_NUMBER_SIZE,
-      TITLE_SELECTION_NUMBER_SIZE,
-      -offsetX + destination.x * imageScale,
-      destination.y * imageScale,
-      TITLE_SELECTION_NUMBER_SIZE * imageScale,
-      TITLE_SELECTION_NUMBER_SIZE * imageScale,
-    );
-  });
-  context.restore();
+  drawFullScreenImage(context, getImage("title"));
 };
 
 export const renderResult = (
